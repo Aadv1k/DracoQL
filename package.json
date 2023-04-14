@@ -1,0 +1,15 @@
+{
+  "name": "moleql",
+  "version": "1.0.0",
+  "description": "MoleQL is a TypeScript-based DSL for web scraping and data manipulation with tooling to pull data from files, web or databas and pipe it to different sources.",
+  "main": "./dist/index.js",
+  "scripts": {
+    "dev": "tsc --watch",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Aadv1k <aadv1k@outlook.com>",
+  "license": "MIT ",
+  "devDependencies": {
+    "typescript": "^5.0.4"
+  }
+}
