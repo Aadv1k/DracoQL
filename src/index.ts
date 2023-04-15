@@ -1,7 +1,7 @@
-import Lexer from "./Lexer";
+import MQLLexer from "./Lexer";
 import { Tokens, Lex, TokenType } from "../types/lexer";
 import * as AST from "../types/ast";
-import { MoleQLSyntaxError }  from "./exceptions";
+import { MQLSyntaxError }  from "./Exceptions";
 
 class MQlParser {
   private lexedInput: Lex;
@@ -32,10 +32,8 @@ class MQlParser {
           case Tokens.VAR:
             let literal = lexedLine[j + 1];
             if (literal?.tokenType !== TokenType.IDENTIFIER) {
-              throw new MoleQLSyntaxError("variable name expected", line, lexedLine[j].end + 2);
+              throw new MQLSyntaxError("variable name expected", line, lexedLine[j].end + 2);
             }
-
-            this.NS[literal.word] = null;
 
             let varDecl: AST.VarDeclaration = {
               type: "VarDeclaration",
@@ -46,19 +44,24 @@ class MQlParser {
               identifier: literal.word,
               value: {},
             }
+            this.NS[literal.word] = null;
             this.AST.body.push(varDecl)
             break;
           case Tokens.EQUALTO: 
             if (
-              lexedLine[j + 1]?.word === "VAR" 
-              || lexedLine[j+1]?.tokenType === TokenType.OPERATOR
+              lexedLine[j + 1]?.word !== "FETCH" ||
+              lexedLine[j + 1]?.word !== "GET" ||
+              lexedLine[j + 1]?.tokenType !== TokenType.STRING_LITERAL || 
+              lexedLine[j + 1]?.tokenType !== TokenType.URL_LITERAL || 
+              lexedLine[j+1]?.tokenType === TokenType.OPERATOR || 
+              !lexedLine[j+1]
             ) {
-              throw new MoleQLSyntaxError(`expected LHS declaration, got ${lexedLine[j+1]?.tokenType.toLowerCase()}`, line, lexedLine[j].end + 2);
+              throw new MQLSyntaxError(`expected LHS declaration, got ${lexedLine[j+1]?.tokenType.toLowerCase() ?? "none"}`, line, lexedLine[j].end + 2);
             }
             break;
           case Tokens.FETCH:  
             if (lexedLine[j+1].tokenType !== TokenType.URL_LITERAL) {
-              throw new MoleQLSyntaxError(`FETCH expects a URL_LITERAL got ${lexedLine[j+1]?.tokenType ?? "none"}`, line, lexedLine[j].end + 2);
+              throw new MQLSyntaxError(`FETCH expects a URL_LITERAL got ${lexedLine[j+1]?.tokenType ?? "none"}`, line, lexedLine[j].end + 2);
             }
             let astHead = this.AST.body.slice(-1)[0];
             let fetchExpr: AST.FetchExpression = {
@@ -80,28 +83,40 @@ class MQlParser {
             let dataTypes: Array<string> = Object.values(AST.DataType)
             let asType = lexedLine[j+1].word;
             if (!lexedLine[j+1] || !dataTypes.includes(asType)) {
-              throw new MoleQLSyntaxError(`AS expects a valid data type got ${lexedLine[j+1]?.word ?? "none"}`, line, lexedLine[j].end + 2);
+              throw new MQLSyntaxError(`AS expects a valid data type got ${lexedLine[j+1]?.word ?? "none"}`, line, lexedLine[j].end + 2);
             };
 
             let tail = this.AST.body.slice(-1)[0]
             if (tail?.value?.type !== "FetchExpression") {
-              throw new MoleQLSyntaxError(`AS needs a valid expressiont to cast`, line, lexedLine[j].end + 2);
+              throw new MQLSyntaxError(`AS needs a valid expression to cast`, line, lexedLine[j].end + 2);
             }
             tail.value.format = asType;
+            break;
+          case Tokens.PIPE:
+
+            if (!lexedLine[j+1] || !(lexedLine[j+1].tokenType === TokenType.IDENTIFIER ||
+                lexedLine[j+1].tokenType === TokenType.STRING_LITERAL ||
+                lexedLine[j+1].tokenType === TokenType.URL_LITERAL
+              )
+            ) {
+              throw new MQLSyntaxError(`PIPE needs a valid literal or reference`, line, lexedLine[j].end + 2);
+            };
+            console.log(lexedLine[j+1]);
             break;
         } 
       }
     }
-    console.log(JSON.stringify(this.AST))
+//    console.log(JSON.stringify(this.AST))
   }
 }
 
 let str = `
 VAR data = FETCH https://api.kanye.rest AS JSON 
-VAR 
+PIPE "Hello, world!" TO STDOUT
 `;
 
-let lexer = new Lexer(str);
+let lexer = new MQLLexer(str);
 let tokens = lexer.lex();
-let parser = new MQlParser(tokens, str);
-parser.parse();
+console.log(tokens);
+//let parser = new MQlParser(tokens, str);
+//parser.parse();

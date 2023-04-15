@@ -24,3 +24,10 @@ export interface VarDeclaration {
   value: FetchExpression | {},
   location: Location,
 }
+
+export interface PipeExpression {
+  type: "PipeExpression",
+  source: string | FetchExpression,
+  destination: string,
+  location: Location,
+}

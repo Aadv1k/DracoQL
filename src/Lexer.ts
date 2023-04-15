@@ -1,8 +1,8 @@
 import { TokenType, Token, Tokens, Lex } from "../types/lexer";
-import { MoleQLSyntaxError } from "./exceptions";
+import { MQLSyntaxError } from "./Exceptions";
 import { isURL } from "../lib/utils";
 
-export default class Lexer {
+export default class MQLLexer {
   private input: string;
   private cursor: number;
   private end: boolean;
@@ -23,7 +23,7 @@ export default class Lexer {
     return line[this.cursor]
   }
 
-  handleToken(token: string): void  {
+  handleToken(token: string, isStr?: boolean): void  {
     let obj: Token = {
       word: token.trim(),
       begin: this.cursor - token.trim().length,
@@ -66,9 +66,12 @@ export default class Lexer {
         break;
       default: 
         if (token.trim().length < 1) break;
-
         if (
-          this.stack[this.stack.length - 1]?.word === "VAR"
+          (
+            this.stack[this.stack.length - 1]?.word === "VAR" ||
+            this.stack[this.stack.length - 1]?.word === "PIPE" && !isStr
+          )
+
           && !isURL(obj.word)
         ) {
           obj.tokenType = TokenType.IDENTIFIER;
@@ -80,6 +83,10 @@ export default class Lexer {
           obj.tokenType = TokenType.URL_LITERAL;
           this.stack.push(obj)
           break;
+        }
+
+        if (!isStr) {
+          throw new MQLSyntaxError(`Unknown token ${token}`);
         }
 
         obj.tokenType = TokenType.STRING_LITERAL;
@@ -101,7 +108,7 @@ export default class Lexer {
       }
 
       if (cur === "\"" && open) {
-        this.handleToken(quotes);
+        this.handleToken(quotes, true);
         quotes = "";
         open = false;
         continue;
@@ -121,7 +128,7 @@ export default class Lexer {
     }
 
     if (open) {
-      throw new MoleQLSyntaxError("string literal must be terminated");
+      throw new MQLSyntaxError("string literal must be terminated");
     }
 
     this.cursor = -1;

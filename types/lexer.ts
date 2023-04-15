@@ -20,6 +20,7 @@ export enum Tokens {
   VAR = "VAR",
   EQUALTO = "=",
   FETCH = "FETCH",
+  TEXT = "TEXT",
   AS = "AS",
   JSON = "JSON",
   PIPE = "PIPE",
