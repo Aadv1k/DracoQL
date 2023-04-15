@@ -1,16 +1,22 @@
 import Lexer from "./Lexer";
 import { Tokens, Lex, TokenType } from "../types/lexer";
+import * as AST from "../types/ast";
 import { MoleQLSyntaxError }  from "./exceptions";
 
-class Parser {
+class MQlParser {
   private lexedInput: Lex;
   private input: string;
   private NS: any;
+  private AST: any;
 
   constructor(lexedInput: Lex, input: string) {
     this.lexedInput = lexedInput;
     this.input = input;
     this.NS = {};
+    this.AST = {
+      type: "Program", // TODO: determine where the evaluater is run from 
+      body: []
+    };
   }
 
   parse(): void {
@@ -24,15 +30,23 @@ class Parser {
       for (let j = 0; j < lexedLine.length; j++) {
         switch (lexedLine[j].word) {
           case Tokens.VAR:
-            let varName = this.input
-              .slice(lexedLine[j].end + 2, lexedLine[j + 1].begin)
-              .trim();
-
-            if (!varName) {
+            let literal = lexedLine[j + 1];
+            if (literal?.tokenType !== TokenType.IDENTIFIER) {
               throw new MoleQLSyntaxError("variable name expected", line, lexedLine[j].end + 2);
             }
 
-            this.NS[varName] = null;
+            this.NS[literal.word] = null;
+
+            let varDecl: AST.VarDeclaration = {
+              type: "VarDeclaration",
+              location: {
+                row: i,
+                col: lexedLine[j].begin,
+              },
+              identifier: literal.word,
+              value: {},
+            }
+            this.AST.body.push(varDecl)
             break;
           case Tokens.EQUALTO: 
             if (
@@ -43,23 +57,51 @@ class Parser {
             }
             break;
           case Tokens.FETCH:  
-            if (lexedLine.length - 1 < j+1) {
-              throw new MoleQLSyntaxError(`FETCH expects a URL got none`, line, lexedLine[j].end + 2);
+            if (lexedLine[j+1].tokenType !== TokenType.URL_LITERAL) {
+              throw new MoleQLSyntaxError(`FETCH expects a URL_LITERAL got ${lexedLine[j+1]?.tokenType ?? "none"}`, line, lexedLine[j].end + 2);
             }
-            console.log(this.input.slice(lexedLine[j].end + 2, lexedLine[j+1].begin).trim());
+            let astHead = this.AST.body.slice(-1)[0];
+            let fetchExpr: AST.FetchExpression = {
+              type: "FetchExpression",
+              url: lexedLine[j+1].word,
+              format: AST.DataType.NULL,
+              location: {
+                row: i,
+                col: lexedLine[j].begin,
+              }
+            } 
+            if (astHead && astHead.type === "VarDeclaration") {
+              astHead.value = fetchExpr;
+              break;
+            }
+            this.AST.body.push(fetchExpr);
+            break;
+          case Tokens.AS: 
+            let dataTypes: Array<string> = Object.values(AST.DataType)
+            let asType = lexedLine[j+1].word;
+            if (!lexedLine[j+1] || !dataTypes.includes(asType)) {
+              throw new MoleQLSyntaxError(`AS expects a valid data type got ${lexedLine[j+1]?.word ?? "none"}`, line, lexedLine[j].end + 2);
+            };
+
+            let tail = this.AST.body.slice(-1)[0]
+            if (tail?.value?.type !== "FetchExpression") {
+              throw new MoleQLSyntaxError(`AS needs a valid expressiont to cast`, line, lexedLine[j].end + 2);
+            }
+            tail.value.format = asType;
             break;
         } 
-         
       }
     }
+    console.log(JSON.stringify(this.AST))
   }
 }
 
- //https://api.kanye.rest AS JSON 
-let str = ` PIPE "hellow world" TO STDOUT `;
+let str = `
+VAR data = FETCH https://api.kanye.rest AS JSON 
+VAR 
+`;
 
 let lexer = new Lexer(str);
 let tokens = lexer.lex();
-console.log(tokens[0]);
-//let parser = new Parser(tokens, str);
-//parser.parse();
+let parser = new MQlParser(tokens, str);
+parser.parse();

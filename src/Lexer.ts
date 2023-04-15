@@ -1,5 +1,6 @@
 import { TokenType, Token, Tokens, Lex } from "../types/lexer";
 import { MoleQLSyntaxError } from "./exceptions";
+import { isURL } from "../lib/utils";
 
 export default class Lexer {
   private input: string;
@@ -66,7 +67,22 @@ export default class Lexer {
       default: 
         if (token.trim().length < 1) break;
 
-        obj.tokenType = TokenType.LITERAL;
+        if (
+          this.stack[this.stack.length - 1]?.word === "VAR"
+          && !isURL(obj.word)
+        ) {
+          obj.tokenType = TokenType.IDENTIFIER;
+          this.stack.push(obj)
+          break;
+        }
+
+        if (isURL(obj.word)) {
+          obj.tokenType = TokenType.URL_LITERAL;
+          this.stack.push(obj)
+          break;
+        }
+
+        obj.tokenType = TokenType.STRING_LITERAL;
         this.stack.push(obj)
     }
   }
@@ -110,7 +126,6 @@ export default class Lexer {
 
     this.cursor = -1;
     this.end = false;
-
 
     let local = this.stack;
     this.stack = [];

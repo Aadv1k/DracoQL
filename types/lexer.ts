@@ -1,7 +1,9 @@
 export enum TokenType {
   OPERATOR = "OPERATOR",
   KEYWORD = "KEYWORD",
-  VARIABLE = "VARIABLE",
+  IDENTIFIER = "IDENTIFIER",
+  STRING_LITERAL = "STRING_LITERAL",
+  URL_LITERAL = "URL_LITERAL",
   NULL = "NULL",
 }
 
@@ -17,7 +19,7 @@ export type Lex = Array<[number, Array<Token>]>;
 export enum Tokens {
   VAR = "VAR",
   EQUALTO = "=",
-  GET = "GET",
+  FETCH = "FETCH",
   AS = "AS",
   JSON = "JSON",
   PIPE = "PIPE",

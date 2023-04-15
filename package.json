@@ -11,5 +11,8 @@
   "license": "MIT ",
   "devDependencies": {
     "typescript": "^5.0.4"
+  },
+  "dependencies": {
+    "@types/node": "^18.15.11"
   }
 }
