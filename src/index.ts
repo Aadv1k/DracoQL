@@ -5,10 +5,12 @@ import { MoleQLSyntaxError }  from "./exceptions";
 class Parser {
   private lexedInput: Lex;
   private input: string;
+  private NS: any;
 
   constructor(lexedInput: Lex, input: string) {
     this.lexedInput = lexedInput;
     this.input = input;
+    this.NS = {};
   }
 
   parse(): void {
@@ -21,7 +23,7 @@ class Parser {
 
       for (let j = 0; j < lexedLine.length; j++) {
         switch (lexedLine[j].word) {
-          case Tokens.VAR: {
+          case Tokens.VAR:
             let varName = this.input
               .slice(lexedLine[j].end + 2, lexedLine[j + 1].begin)
               .trim();
@@ -29,28 +31,35 @@ class Parser {
             if (!varName) {
               throw new MoleQLSyntaxError("variable name expected", line, lexedLine[j].end + 2);
             }
+
+            this.NS[varName] = null;
             break;
-          } case Tokens.EQUALTO: 
+          case Tokens.EQUALTO: 
             if (
-              lexedLine[j + 1].word === "VAR" 
-              || lexedLine[j+1].tokenType === TokenType.OPERATOR
+              lexedLine[j + 1]?.word === "VAR" 
+              || lexedLine[j+1]?.tokenType === TokenType.OPERATOR
             ) {
-              throw new MoleQLSyntaxError("expected LHS declaration, got expression", line, lexedLine[j].end + 2);
+              throw new MoleQLSyntaxError(`expected LHS declaration, got ${lexedLine[j+1]?.tokenType.toLowerCase()}`, line, lexedLine[j].end + 2);
             }
             break;
-        }
+          case Tokens.FETCH:  
+            if (lexedLine.length - 1 < j+1) {
+              throw new MoleQLSyntaxError(`FETCH expects a URL got none`, line, lexedLine[j].end + 2);
+            }
+            console.log(this.input.slice(lexedLine[j].end + 2, lexedLine[j+1].begin).trim());
+            break;
+        } 
+         
       }
     }
   }
 }
 
-let str = `
-  VAR data = GET https://api.kanye.rest AS JSON 
-  PIPE data TO STDOUT
-  PIPE "hellow orld" TO STDOUT
-`;
+ //https://api.kanye.rest AS JSON 
+let str = ` PIPE "hellow world" TO STDOUT `;
 
 let lexer = new Lexer(str);
 let tokens = lexer.lex();
-let parser = new Parser(tokens, str);
-parser.parse();
+console.log(tokens[0]);
+//let parser = new Parser(tokens, str);
+//parser.parse();

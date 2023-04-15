@@ -1,4 +1,5 @@
 import { TokenType, Token, Tokens, Lex } from "../types/lexer";
+import { MoleQLSyntaxError } from "./exceptions";
 
 export default class Lexer {
   private input: string;
@@ -38,7 +39,7 @@ export default class Lexer {
         obj.tokenType = TokenType.KEYWORD;
         this.stack.push(obj)
         break;
-      case Tokens.GET: 
+      case Tokens.FETCH: 
         obj.tokenType = TokenType.KEYWORD;
         this.stack.push(obj)
         break;
@@ -62,15 +63,40 @@ export default class Lexer {
         obj.tokenType = TokenType.KEYWORD;
         this.stack.push(obj)
         break;
+      default: 
+        if (token.trim().length < 1) break;
+
+        obj.tokenType = TokenType.LITERAL;
+        this.stack.push(obj)
     }
   }
 
   lexLine(line: string): Array<Token> {
     let stack = "";
+    let open = false;
+    let quotes = "";
 
     while (!this.end) {
       let cur = this.advance(line);
-      if (cur === " ") {
+
+      if (cur === "\"" && !open) {
+        open = true;
+        continue;
+      }
+
+      if (cur === "\"" && open) {
+        this.handleToken(quotes);
+        quotes = "";
+        open = false;
+        continue;
+      }
+
+      if (open) {
+        quotes += cur;
+        continue;
+      }
+
+      if (cur === " " || cur === undefined) {
         this.handleToken(stack);
         stack = "";
         continue;
@@ -78,8 +104,13 @@ export default class Lexer {
       stack += cur;
     }
 
+    if (open) {
+      throw new MoleQLSyntaxError("string literal must be terminated");
+    }
+
     this.cursor = -1;
     this.end = false;
+
 
     let local = this.stack;
     this.stack = [];
@@ -89,12 +120,9 @@ export default class Lexer {
 
   lex(): Lex {
     let lines = this.input.split('\n');
-
     let parsed = lines.map((line: string, i) => {
       return [i+1, this.lexLine(line)] as [number, Token[]]
     });
-
     return parsed;
   }
-
 }
