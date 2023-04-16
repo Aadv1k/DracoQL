@@ -56,6 +56,15 @@ class MQlParser {
             ) {
               throw new MQLSyntaxError(`expected LHS declaration, got ${lexedLine[j+1]?.tokenType.toLowerCase() ?? "none"}`, line, lexedLine[j].end + 2);
             }
+
+            if (
+              lexedLine[j+1].tokenType === TokenType.URL_LITERAL || 
+              lexedLine[j+1].tokenType === TokenType.STRING_LITERAL) {
+              this.AST.body[this.AST.body.length - 1].value = {
+                type: lexedLine[j+1].tokenType,
+                value: lexedLine[j+1].word,
+              }
+            }
             break;
           case Tokens.FETCH:  
             if (lexedLine[j+1]?.tokenType !== TokenType.URL_LITERAL) {
@@ -72,6 +81,9 @@ class MQlParser {
               }
             } 
             if (astHead && astHead.type === "VarDeclaration") {
+
+              if (astHead.value) throw new MQLSyntaxError(`assigning FETCH to already assigned variable ${astHead.identifier}`, i, lexedLine[j].begin);
+
               astHead.value = fetchExpr;
               break;
             }
@@ -127,7 +139,6 @@ class MQlParser {
               throw new MQLSyntaxError(`TO expects a valid destination, got ${toOutput ? `a ${toOutput.tokenType.toLowerCase()} '${toOutput.word}'` : 'none'}`, i, lexedLine[j].end + 2);
             }
 
-
             if (tail?.type !== "PipeExpression") {
               throw new MQLSyntaxError(`TO expects a PIPE expression, got ${tail?.type ?? 'none'}`, i, lexedLine[j].begin);
             }
@@ -147,7 +158,7 @@ class MQlParser {
 }
 
 let str = `
-PIPE "hello world" TO STDOUT
+VAR hello = "hello"
 `; 
 
 let lexer = new MQLLexer(str);
