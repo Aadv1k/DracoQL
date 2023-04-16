@@ -64,6 +64,19 @@ export default class MQLLexer {
         obj.tokenType = TokenType.KEYWORD;
         this.stack.push(obj)
         break;
+      case Tokens.DIE:
+        obj.tokenType = TokenType.KEYWORD;
+        this.stack.push(obj)
+        break;
+      case Tokens.EXIT:
+        obj.tokenType = TokenType.KEYWORD;
+        this.stack.push(obj)
+        break;
+      case Tokens.OR:
+        obj.tokenType = TokenType.KEYWORD;
+        this.stack.push(obj)
+        break;
+
       default: 
         if (token.trim().length < 1) break;
         if (
@@ -83,6 +96,12 @@ export default class MQLLexer {
           obj.tokenType = TokenType.URL_LITERAL;
           this.stack.push(obj)
           break;
+        }
+
+        if (Number.isInteger(Number(obj.word))) {
+          obj.tokenType = TokenType.INT_LITERAL;
+          this.stack.push(obj)
+          break
         }
 
         if (!isStr) {

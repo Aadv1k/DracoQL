@@ -4,6 +4,7 @@ export enum TokenType {
   IDENTIFIER = "IDENTIFIER",
   STRING_LITERAL = "STRING_LITERAL",
   URL_LITERAL = "URL_LITERAL",
+  INT_LITERAL = "INT_LITERAL",
   NULL = "NULL",
 }
 
@@ -18,6 +19,9 @@ export type Lex = Array<[number, Array<Token>]>;
 
 export enum Tokens {
   VAR = "VAR",
+  OR = "OR",
+  EXIT = "EXIT",
+  DIE = "DIE",
   EQUALTO = "=",
   FETCH = "FETCH",
   TEXT = "TEXT",

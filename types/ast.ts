@@ -9,7 +9,7 @@ export type ASTNode =
   FetchExpression 
   | VarDeclaration
   | PipeExpression
-  | DieExpression
+  | OrExpression
 
 interface Location {
   row: number,
@@ -41,10 +41,16 @@ export interface FetchExpression {
   location: Location,
 }
 
-export interface DieExpression {
-  type: "DieExpression",
-  value?: string,
-  code?: number,
+export enum OrType {
+  DIE = "DIE",
+  EXTERN = "EXTERN",
+  EXIT = "EXIT",
+}
+
+export interface OrExpression {
+  type: "OrExpression",
+  handler: OrType,
+  handlerMeta: any,
 }
 
 export interface VarDeclaration {

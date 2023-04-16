@@ -1,7 +1,8 @@
 import MQLLexer from "./Lexer";
 import MQLParser from "./Parser";
 
-let str = `VAR data = FETCH https://api.kanye.rest
+let str = `VAR data = FETCH https://api.kanye.rest 
+   OR EXIT -1
 PIPE data TO STDOUT
 `; 
 

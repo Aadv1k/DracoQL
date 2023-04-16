@@ -36,7 +36,7 @@ export default class MQlParser {
             let varDecl: AST.VarDeclaration = {
               type: "VarDeclaration",
               location: {
-                row: i,
+                row: i + 1,
                 col: lexedLine[j].begin,
               },
               identifier: literal.word,
@@ -52,7 +52,6 @@ export default class MQlParser {
             ) {
               throw new MQLSyntaxError(`expected LHS declaration, got ${lexedLine[j+1]?.tokenType.toLowerCase() ?? "none"}`, line, lexedLine[j].end + 2);
             }
-
             if (
               lexedLine[j+1].tokenType === TokenType.URL_LITERAL || 
               lexedLine[j+1].tokenType === TokenType.STRING_LITERAL) {
@@ -64,29 +63,26 @@ export default class MQlParser {
 
             }
             break;
-          case Tokens.FETCH:  
+          case Tokens.FETCH: //  fetch a URL_LITERAL
             if (lexedLine[j+1]?.tokenType !== TokenType.URL_LITERAL) {
               throw new MQLSyntaxError(`FETCH expects a URL_LITERAL got ${lexedLine[j+1]?.tokenType ?? "none"}`, line, lexedLine[j].end + 2);
             }
-            let astHead = this.AST.body.slice(-1)[0];
             let fetchExpr: AST.FetchExpression = {
               type: "FetchExpression",
               url: lexedLine[j+1].word,
               format: null,
               location: {
-                row: i,
+                row: i + 1,
                 col: lexedLine[j].begin,
               }
             } 
-            if (astHead && astHead.type === "VarDeclaration") {
-              if (Object.keys(astHead.value).length !== 0) throw new MQLSyntaxError(`assigning FETCH to already assigned variable ${astHead.identifier}`, i, lexedLine[j].begin);
-              astHead.value = fetchExpr;
+            // TODO: to check this or to not check this?
+            if (!tail && tail?.type !== "VarDeclaration") {
               break;
             }
-
             this.AST.body.push(fetchExpr);
             break;
-          case Tokens.AS: {
+          case Tokens.AS: { // cast the expression on LHS as a specific data type
             let dataTypes: Array<string> = Object.values(AST.DataType)
             let fetchFormat: string = lexedLine[j+1].word;
             if (!lexedLine[j+1] || !dataTypes.includes(fetchFormat)) {
@@ -101,7 +97,7 @@ export default class MQlParser {
             target.format = AST.DataType[fetchFormat as keyof typeof AST.DataType];
             break;
           }
-          case Tokens.PIPE:
+          case Tokens.PIPE: // cast any variable or literal to an output  
             if (!lexedLine[j+1] || !(lexedLine[j+1].tokenType === TokenType.IDENTIFIER ||
                 lexedLine[j+1].tokenType === TokenType.STRING_LITERAL ||
                 lexedLine[j+1].tokenType === TokenType.URL_LITERAL
@@ -121,14 +117,14 @@ export default class MQlParser {
                 value: null,
               },
               location: {
-                row: i,
+                row: i + 1,
                 col: lexedLine[j].begin,
               }
             }
 
             this.AST.body.push(pipeExpr)
             break;
-          case Tokens.TO: 
+          case Tokens.TO: // cast a PIPE expression to provided output
             if (tail?.type !== "PipeExpression") {
               throw new MQLSyntaxError(`TO excepts a valid PIPE expression before`, i + 1, lexedLine[j].end + 1)
             }
@@ -153,10 +149,39 @@ export default class MQlParser {
             //if (astDest.type === AST.DEST_TYPE.FILE) { } TODO: Handle this
             let target = this.AST.body[this.AST.body.length - 1] as AST.PipeExpression;
             target.destination = pipeDestExpr;
-        } 
+            break;
+          case Tokens.OR: // determines action to do if the expression on LHS fails
+            let vals: Array<string> = Object.values(AST.OrType)
+
+            if (
+              !lexedLine?.[j+1] ||
+              lexedLine?.[j+1]?.tokenType !== TokenType.KEYWORD ||
+              !vals.includes(lexedLine?.[j+1].word)
+            ) {
+              throw new MQLSyntaxError(`OR expected a valid handler, found ${lexedLine?.[j+1].tokenType.toLowerCase() ?? "none"}`, i, lexedLine[j].begin)
+            }
+
+            if (!(
+              tail?.type === "FetchExpression" || 
+              tail?.type === "PipeExpression"))  {
+              throw new MQLSyntaxError(`OR expected a valid expression to handle, found ${tail?.type ?? "none"}`, i, lexedLine[j].begin)
+            }
+
+            let orExpr: AST.OrExpression = {
+              type: "OrExpression",
+              handler: AST.OrType[lexedLine[j+1].word as keyof typeof AST.OrType],
+              handlerMeta: null,
+            }
+
+            if (lexedLine[j+1].word === "EXIT") {
+              if (lexedLine[j+2].tokenType !== TokenType.INT_LITERAL) throw new MQLSyntaxError(`EXIT expected a valid INT_LITERAL, found ${lexedLine[j+2]?.tokenType ?? "none"}`, i, lexedLine[j+1].end)
+              orExpr.handlerMeta = Number(lexedLine[j+2].word);
+            }
+
+            this.AST.body.push(orExpr);
+            break;
+        }
       }
     }
-    console.log(JSON.stringify(this.AST));
   }
 }
-
