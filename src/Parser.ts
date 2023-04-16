@@ -72,14 +72,14 @@ export default class MQlParser {
             let fetchExpr: AST.FetchExpression = {
               type: "FetchExpression",
               url: lexedLine[j+1].word,
-              format: AST.DataType.NULL,
+              format: null,
               location: {
                 row: i,
                 col: lexedLine[j].begin,
               }
             } 
             if (astHead && astHead.type === "VarDeclaration") {
-              if (astHead.value) throw new MQLSyntaxError(`assigning FETCH to already assigned variable ${astHead.identifier}`, i, lexedLine[j].begin);
+              if (Object.keys(astHead.value).length !== 0) throw new MQLSyntaxError(`assigning FETCH to already assigned variable ${astHead.identifier}`, i, lexedLine[j].begin);
               astHead.value = fetchExpr;
               break;
             }

@@ -37,7 +37,7 @@ export enum DataType {
 export interface FetchExpression {
   type: "FetchExpression",
   url: string,
-  format: DataType,
+  format: DataType | null,
   location: Location,
 }
 
