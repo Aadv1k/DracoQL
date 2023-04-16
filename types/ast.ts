@@ -1,16 +1,27 @@
 import { TokenType } from "./lexer";
 
+export interface ASTDocument {
+  type: string,
+  body: Array<ASTNode>
+}
+
+export type ASTNode = 
+  FetchExpression 
+  | VarDeclaration
+  | PipeExpression
+  | DieExpression
+
 interface Location {
   row: number,
   col: number,
 }
 
-export interface Destination {
+export interface PipeDestination {
   type: DEST_TYPE,
   value: string | null, // STDOUT may not have a value 
 }
 
-export interface Source {
+export interface PipeSource {
   type: TokenType // expects TokenType.STRING_LITERAL | TokenType.IDENTIFIER,
   value: string,
 }
@@ -27,7 +38,6 @@ export interface FetchExpression {
   type: "FetchExpression",
   url: string,
   format: DataType,
-  //TODO: error handling via else: PipeExpression | DieExpression,
   location: Location,
 }
 
@@ -46,8 +56,8 @@ export interface VarDeclaration {
 
 export interface PipeExpression {
   type: "PipeExpression",
-  source: Source,
-  destination: Destination,
+  source: PipeSource,
+  destination: PipeDestination,
   location: Location,
 }
 
