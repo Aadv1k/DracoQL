@@ -5,6 +5,16 @@ interface Location {
   col: number,
 }
 
+export interface Destination {
+  type: DEST_TYPE,
+  value: string | null, // STDOUT may not have a value 
+}
+
+export interface Source {
+  type: TokenType // expects TokenType.STRING_LITERAL | TokenType.IDENTIFIER,
+  value: string,
+}
+
 export enum DataType {
   JSON = 'JSON',
   TEXT = 'TEXT',
@@ -17,13 +27,27 @@ export interface FetchExpression {
   type: "FetchExpression",
   url: string,
   format: DataType,
+  //TODO: error handling via else: PipeExpression | DieExpression,
   location: Location,
+}
+
+export interface DieExpression {
+  type: "DieExpression",
+  value?: string,
+  code?: number,
 }
 
 export interface VarDeclaration {
   type: "VarDeclaration",
   identifier: string,
   value: FetchExpression | {},
+  location: Location,
+}
+
+export interface PipeExpression {
+  type: "PipeExpression",
+  source: Source,
+  destination: Destination,
   location: Location,
 }
 
@@ -37,15 +61,3 @@ export enum DEST_TYPE {
   NULL = "NULL",
 }
 
-export interface PipeExpression {
-  type: "PipeExpression",
-  source: {
-    type: TokenType // expects TokenType.STRING_LITERAL | TokenType.IDENTIFIER,
-    value: string,
-  },
-  destination: {
-    type: DEST_TYPE,
-    value: string | null, // STDOUT may not have a value 
-  }
-  location: Location,
-}

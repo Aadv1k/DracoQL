@@ -21,8 +21,10 @@ PIPE "hello world!" TO STDOUT
 ### Fetch data and log it to the console
 
 ```
-VAR data = GET URL https://jsonplaceholder.typicode.com/posts AS JSON 
-    OR DIE // exit if data is not JSON
+VAR data = GET URL https://jsonplaceholder.typicode.com/posts 
+  AS JSON 
+  OR DIE // exit if data is not valid JSON
+
 VAR title = DATA[0].title
 PIPE title TO STDOUT
 ```
