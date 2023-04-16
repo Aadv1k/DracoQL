@@ -43,14 +43,13 @@ export interface FetchExpression {
 
 export enum OrType {
   DIE = "DIE",
-  EXTERN = "EXTERN",
   EXIT = "EXIT",
 }
 
 export interface OrExpression {
   type: "OrExpression",
   handler: OrType,
-  handlerMeta: any,
+  code?: number,
 }
 
 export interface VarDeclaration {

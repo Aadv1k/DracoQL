@@ -54,13 +54,14 @@ export default class MQlParser {
             }
             if (
               lexedLine[j+1].tokenType === TokenType.URL_LITERAL || 
-              lexedLine[j+1].tokenType === TokenType.STRING_LITERAL) {
+              lexedLine[j+1].tokenType === TokenType.STRING_LITERAL ||
+              lexedLine[j+1].tokenType === TokenType.INT_LITERAL
+            ) {
               let target = this.AST.body[this.AST.body.length - 1] as AST.VarDeclaration;
               target.value = {
                 type: lexedLine[j+1].tokenType,
                 value: lexedLine[j+1].word,
               };
-
             }
             break;
           case Tokens.FETCH: //  fetch a URL_LITERAL
@@ -77,14 +78,16 @@ export default class MQlParser {
               }
             } 
             // TODO: to check this or to not check this?
-            if (!tail && tail?.type !== "VarDeclaration") {
+            if (tail && tail?.type === "VarDeclaration") {
+              let target = this.AST.body[this.AST.body.length - 1] as AST.VarDeclaration;
+              target.value = fetchExpr;
               break;
             }
             this.AST.body.push(fetchExpr);
             break;
           case Tokens.AS: { // cast the expression on LHS as a specific data type
             let dataTypes: Array<string> = Object.values(AST.DataType)
-            let fetchFormat: string = lexedLine[j+1].word;
+            let fetchFormat: string = lexedLine[j+1]?.word;
             if (!lexedLine[j+1] || !dataTypes.includes(fetchFormat)) {
               throw new MQLSyntaxError(`AS expects a valid data type got ${lexedLine[j+1]?.word ?? "none"}`, line, lexedLine[j].end + 2);
             };
@@ -98,9 +101,9 @@ export default class MQlParser {
             break;
           }
           case Tokens.PIPE: // cast any variable or literal to an output  
-            if (!lexedLine[j+1] || !(lexedLine[j+1].tokenType === TokenType.IDENTIFIER ||
-                lexedLine[j+1].tokenType === TokenType.STRING_LITERAL ||
-                lexedLine[j+1].tokenType === TokenType.URL_LITERAL
+            if (!lexedLine[j+1] || !(lexedLine[j+1]?.tokenType === TokenType.IDENTIFIER ||
+                lexedLine[j+1]?.tokenType === TokenType.STRING_LITERAL ||
+                lexedLine[j+1]?.tokenType === TokenType.URL_LITERAL
               )
             ) {
               throw new MQLSyntaxError(`PIPE needs a valid literal or reference`, line, lexedLine[j].end + 1);
@@ -161,27 +164,30 @@ export default class MQlParser {
               throw new MQLSyntaxError(`OR expected a valid handler, found ${lexedLine?.[j+1].tokenType.toLowerCase() ?? "none"}`, i, lexedLine[j].begin)
             }
 
-            if (!(
-              tail?.type === "FetchExpression" || 
-              tail?.type === "PipeExpression"))  {
-              throw new MQLSyntaxError(`OR expected a valid expression to handle, found ${tail?.type ?? "none"}`, i, lexedLine[j].begin)
-            }
+            if (
+              !(
+                tail?.value?.type === "FetchExpression" || 
+                tail?.type === "FetchExpression" || 
+                tail?.type === "PipeExpression"
+              ))
+              {
+                throw new MQLSyntaxError(`OR expected a valid expression to handle, found ${tail?.type ?? "none"}`, i, lexedLine[j].begin)
+              }
 
             let orExpr: AST.OrExpression = {
               type: "OrExpression",
               handler: AST.OrType[lexedLine[j+1].word as keyof typeof AST.OrType],
-              handlerMeta: null,
             }
 
             if (lexedLine[j+1].word === "EXIT") {
               if (lexedLine[j+2].tokenType !== TokenType.INT_LITERAL) throw new MQLSyntaxError(`EXIT expected a valid INT_LITERAL, found ${lexedLine[j+2]?.tokenType ?? "none"}`, i, lexedLine[j+1].end)
-              orExpr.handlerMeta = Number(lexedLine[j+2].word);
+              orExpr.code = Number(lexedLine[j+2].word);
             }
-
             this.AST.body.push(orExpr);
             break;
         }
       }
     }
+    console.log(JSON.stringify(this.AST));
   }
 }
