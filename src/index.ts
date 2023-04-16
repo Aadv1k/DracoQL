@@ -28,6 +28,8 @@ class MQlParser {
       let line = this.lexedInput[i][0];
 
       for (let j = 0; j < lexedLine.length; j++) {
+        let tail = this.AST.body.slice(-1)[0];
+
         switch (lexedLine[j].word) {
           case Tokens.VAR:
             let literal = lexedLine[j + 1];
@@ -49,10 +51,6 @@ class MQlParser {
             break;
           case Tokens.EQUALTO: 
             if (
-              lexedLine[j + 1]?.word !== "FETCH" ||
-              lexedLine[j + 1]?.word !== "GET" ||
-              lexedLine[j + 1]?.tokenType !== TokenType.STRING_LITERAL || 
-              lexedLine[j + 1]?.tokenType !== TokenType.URL_LITERAL || 
               lexedLine[j+1]?.tokenType === TokenType.OPERATOR || 
               !lexedLine[j+1]
             ) {
@@ -86,37 +84,52 @@ class MQlParser {
               throw new MQLSyntaxError(`AS expects a valid data type got ${lexedLine[j+1]?.word ?? "none"}`, line, lexedLine[j].end + 2);
             };
 
-            let tail = this.AST.body.slice(-1)[0]
             if (tail?.value?.type !== "FetchExpression") {
-              throw new MQLSyntaxError(`AS needs a valid expression to cast`, line, lexedLine[j].end + 2);
+              throw new MQLSyntaxError(`AS needs a valid expression to cast`, line, lexedLine[j].end + 1);
             }
             tail.value.format = asType;
             break;
           case Tokens.PIPE:
-
             if (!lexedLine[j+1] || !(lexedLine[j+1].tokenType === TokenType.IDENTIFIER ||
                 lexedLine[j+1].tokenType === TokenType.STRING_LITERAL ||
                 lexedLine[j+1].tokenType === TokenType.URL_LITERAL
               )
             ) {
-              throw new MQLSyntaxError(`PIPE needs a valid literal or reference`, line, lexedLine[j].end + 2);
+              throw new MQLSyntaxError(`PIPE needs a valid literal or reference`, line, lexedLine[j].end + 1);
             };
-            console.log(lexedLine[j+1]);
+            let pipeExpr: AST.PipeExpression = {
+              type: "PipeExpression",
+              source: {
+                type: lexedLine[j+1].tokenType,
+                value: lexedLine[j+1].word,
+              },
+              destination: {
+                type: AST.DEST_TYPE.NULL,
+                value: null,
+              },
+              location: {
+                row: i,
+                col: lexedLine[j].begin,
+              }
+            }
+            this.AST.body.push(pipeExpr)
             break;
+          case Tokens.TO: 
+            if (tail.type !== "PipeExpression") {
+              throw new MQLSyntaxError(`TO excepts a valid PIPE expression before`, i + 1, lexedLine[j].end + 1)
+            }
         } 
       }
     }
-//    console.log(JSON.stringify(this.AST))
   }
 }
 
 let str = `
 VAR data = FETCH https://api.kanye.rest AS JSON 
-PIPE "Hello, world!" TO STDOUT
+PIPE 
 `;
 
 let lexer = new MQLLexer(str);
 let tokens = lexer.lex();
-console.log(tokens);
-//let parser = new MQlParser(tokens, str);
-//parser.parse();
+let parser = new MQlParser(tokens, str);
+parser.parse();

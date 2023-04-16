@@ -1,3 +1,5 @@
+import { TokenType } from "./lexer";
+
 interface Location {
   row: number,
   col: number,
@@ -25,9 +27,25 @@ export interface VarDeclaration {
   location: Location,
 }
 
+export enum DEST_TYPE {
+  FILE = "FILE",
+  STDOUT = "STDOUT",
+  SQL = "SQL",
+  DOCUMET = "DOCUMENT",
+  WEBRESOURCE = "WEBRESOURCE",
+  FILE_SERVER = "FILE_SERVER",
+  NULL = "NULL",
+}
+
 export interface PipeExpression {
   type: "PipeExpression",
-  source: string | FetchExpression,
-  destination: string,
+  source: {
+    type: TokenType // expects TokenType.STRING_LITERAL | TokenType.IDENTIFIER,
+    value: string,
+  },
+  destination: {
+    type: DEST_TYPE,
+    value: string | null, // STDOUT may not have a value 
+  }
   location: Location,
 }
