@@ -76,16 +76,20 @@ export default class MQLLexer {
         obj.tokenType = TokenType.KEYWORD;
         this.stack.push(obj)
         break;
+      case Tokens.EXTERN: 
+        obj.tokenType = TokenType.KEYWORD;
+        this.stack.push(obj);
+        break;
 
       default: 
         if (token.trim().length < 1) break;
         if (
           (
             this.stack[this.stack.length - 1]?.word === "VAR" ||
-            this.stack[this.stack.length - 1]?.word === "PIPE" && !isStr
-          )
-
-          && !isURL(obj.word)
+            this.stack[this.stack.length - 1]?.word === "PIPE" ||
+            this.stack[this.stack.length - 1]?.word === "EXTERN" 
+            && !isStr
+          ) && !isURL(obj.word)
         ) {
           obj.tokenType = TokenType.IDENTIFIER;
           this.stack.push(obj)

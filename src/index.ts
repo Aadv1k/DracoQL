@@ -4,7 +4,6 @@ import MQLParser from "./Parser";
 let str = `
 VAR data = FETCH https://api.kanye.rest AS JSON
    OR EXIT 1
-PIPE data TO STDOUT
 `; 
 
 const lexer = new MQLLexer(str);
