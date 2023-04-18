@@ -7,14 +7,16 @@ const ERR_EXIT_CODE = 1;
 
 export default class DQLInterpreter {
   ASTDocument: AST.ASTDocument;
-  NS: any;
+  NS: {
+    [key: string]: string | null,
+  };
 
   constructor(ASTDocument: AST.ASTDocument) {
     this.ASTDocument = ASTDocument;
     this.NS = {};
   }
 
-  async evalFetch(node: AST.FetchExpression, orNode?: AST.OrExpression): Promise<string | object> {
+  async evalFetch(node: AST.FetchExpression, orNode?: AST.OrExpression): Promise<string> {
     let response: Array<Buffer> = await fetchBuffer(node.url).catch((_) => {
       throw new DQLNetworkError("unable to parse FETCH expression");
     });
@@ -26,7 +28,6 @@ export default class DQLInterpreter {
       try {
         ret = JSON.parse(data);
       } catch (SyntaxError) {
-
         switch (orNode?.handler) {
           case AST.OrType.EXIT: 
             process.exit(Number(orNode.code))
@@ -51,7 +52,7 @@ export default class DQLInterpreter {
     } else if (node.source.type ===  Lexer.TokenType.IDENTIFIER) {
       let foundVar = this.NS?.[node.source.value];
       if (!foundVar) throw new DQLReferenceError(`was unable to find variable '${node.source.value}'`);
-      src = foundVar.value;
+      src = foundVar;
     }
 
     if (node.destination.type === AST.DestType.STDOUT) {
@@ -75,7 +76,8 @@ export default class DQLInterpreter {
             );
             break;
           } 
-          this.NS[node.identifier] = node.value;
+          let target = node.value as AST.GeneralType;
+          this.NS[node.identifier] = target.value;
           break;
         } 
         case "PipeExpression": {

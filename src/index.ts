@@ -4,10 +4,8 @@ import DQLInterpreter from "./Interpreter";
 
 
 let str = `
-// VAR data = FETCH url AS JSON
-// OR DIE 
-
-PIPE "foo" TO STDOUT // hello world
+VAR data = FETCH https://google.com AS TEXT
+PIPE data TO STDOUT
 `; 
 
 (async () => {

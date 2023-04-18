@@ -1,6 +1,6 @@
 import { Tokens, Lex, TokenType } from "../types/lexer";
 import * as AST from "../types/ast";
-import { DQLSyntaxError } from "./Exceptions";
+import { DQLSyntaxError, DQLReferenceError } from "./Exceptions";
 
 export default class DQLParser {
   private lexedInput: Lex;
@@ -85,11 +85,10 @@ export default class DQLParser {
           case Tokens.FETCH: //  fetch a URL_LITERAL
             if (
               lexedLine[j+1]?.tokenType !== TokenType.URL_LITERAL &&
-              lexedLine[j+1]?.tokenType !== TokenType.IDENTIFIER && 
-              !this.ENS[lexedLine[j+1].word]
+              lexedLine[j+1]?.tokenType !== TokenType.IDENTIFIER
             ) {
               throw new DQLSyntaxError(
-                `FETCH expects a URL_LITERAL got ${
+                `FETCH expects a URL_LITERAL got invalid ${
                   lexedLine[j + 1]?.tokenType ?? "none"
                 }`,
                 line,
@@ -97,12 +96,18 @@ export default class DQLParser {
               );
             }
 
+            let targetUrl;
+            if (lexedLine[j+1].tokenType === TokenType.IDENTIFIER) {
+              if (!this.ENS[lexedLine[j + 1].word]) throw new DQLReferenceError(`unable to find variable ${lexedLine[j + 1]?.word ?? ""}`)
+              targetUrl = this.ENS[lexedLine[j + 1].word].value;
+            }
+
+            targetUrl = lexedLine[j+1].word;
+
+          
             let fetchExpr: AST.FetchExpression = {
               type: "FetchExpression",
-              
-              url: lexedLine[j+1].tokenType === TokenType.IDENTIFIER ? 
-                this.ENS[lexedLine[j + 1].word] : 
-                lexedLine[j+1].word,
+              url: targetUrl, 
               format: null,
               location: {
                 row: i + 1,

@@ -133,12 +133,14 @@ export default class DQLLexer {
     while (!this.end) {
       let cur = this.advance(line);
 
-      // check for a comment
+      /*
+      // INFO: This breaks our current URL implementation
       if (cur === "/" && line[this.cursor + 1 ] === '/') {
         let local = this.stack;
         this.stack = [];
         return local;
       }
+*/
 
       if (cur === "\"" && !open) {
         open = true;
