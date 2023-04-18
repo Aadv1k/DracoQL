@@ -87,12 +87,12 @@ export default class MQLLexer {
 
       default: 
         if (token.trim().length < 1) break;
+
         if (
           (
-            this.stack[this.stack.length - 1]?.word === "VAR" ||
+            (this.stack[this.stack.length - 1]?.word === "VAR" ||
             this.stack[this.stack.length - 1]?.word === "PIPE" ||
-            this.stack[this.stack.length - 1]?.word === "EXTERN" || 
-            this.stack[this.stack.length - 1]?.word === "FETCH"
+            this.stack[this.stack.length - 1]?.word === "FETCH")
             && !isStr
           ) && !isURL(obj.word)
         ) {
