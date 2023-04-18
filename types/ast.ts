@@ -5,11 +5,23 @@ export interface ASTDocument {
   body: Array<ASTNode>
 }
 
+export type Namespace = {
+  [key: string]: string;
+}
+
 export type ASTNode = 
   FetchExpression 
   | VarDeclaration
   | PipeExpression
   | OrExpression
+  | ExternExpression
+
+export type ExternExpression = {
+  type: string,
+  identifier: string,
+  value: string,
+  location: Location,
+}
 
 interface Location {
   row: number,
@@ -17,7 +29,7 @@ interface Location {
 }
 
 export interface PipeDestination {
-  type: DEST_TYPE,
+  type: DestType | null,
   value: string | null, // STDOUT may not have a value 
 }
 
@@ -52,10 +64,15 @@ export interface OrExpression {
   code?: number,
 }
 
+export interface GeneralType {
+  type: string,
+  value: string,
+}
+
 export interface VarDeclaration {
   type: "VarDeclaration",
   identifier: string,
-  value: FetchExpression | {},
+  value: FetchExpression | GeneralType | null,
   location: Location,
 }
 
@@ -66,13 +83,13 @@ export interface PipeExpression {
   location: Location,
 }
 
-export enum DEST_TYPE {
+export enum DestType {
   FILE = "FILE",
   STDOUT = "STDOUT",
   SQL = "SQL",
   DOCUMET = "DOCUMENT",
   WEBRESOURCE = "WEBRESOURCE",
   FILE_SERVER = "FILE_SERVER",
-  NULL = "NULL",
+  EXTERN = "EXTERN",
 }
 

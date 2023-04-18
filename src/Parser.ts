@@ -1,15 +1,15 @@
 import { Tokens, Lex, TokenType } from "../types/lexer";
 import * as AST from "../types/ast";
-import { MQLSyntaxError } from "./Exceptions";
+import { MQLSyntaxError, MQLReferenceError } from "./Exceptions";
 
 export default class MQlParser {
   private lexedInput: Lex;
-  private NS: any;
+  private ENS: any;
   private AST: AST.ASTDocument;
 
   constructor(lexedInput: Lex, NS?: AST.Namespace) {
     this.lexedInput = lexedInput;
-    this.NS = {
+    this.ENS = {
       ...NS,
     };
     this.AST = {
@@ -46,12 +46,12 @@ export default class MQlParser {
                 col: lexedLine[j].begin,
               },
               identifier: literal.word,
-              value: {},
+              value: null,
             };
-            this.NS[literal.word] = null;
+            this.ENS[literal.word] = null;
             this.AST.body.push(varDecl);
             break;
-          case Tokens.EQUALTO:
+          case Tokens.EQUALTO: {
             if (
               lexedLine[j + 1]?.tokenType === TokenType.OPERATOR ||
               !lexedLine[j + 1]
@@ -72,14 +72,22 @@ export default class MQlParser {
               let target = this.AST.body[
                 this.AST.body.length - 1
               ] as AST.VarDeclaration;
+
               target.value = {
                 type: lexedLine[j + 1].tokenType,
                 value: lexedLine[j + 1].word,
               };
+              this.ENS[target.identifier]  = lexedLine[j + 1].word;
             }
+
             break;
+          }
           case Tokens.FETCH: //  fetch a URL_LITERAL
-            if (lexedLine[j + 1]?.tokenType !== TokenType.URL_LITERAL) {
+            if (
+              lexedLine[j+1]?.tokenType !== TokenType.URL_LITERAL &&
+              lexedLine[j+1]?.tokenType !== TokenType.IDENTIFIER && 
+              !this.ENS[lexedLine[j+1].word]
+            ) {
               throw new MQLSyntaxError(
                 `FETCH expects a URL_LITERAL got ${
                   lexedLine[j + 1]?.tokenType ?? "none"
@@ -88,9 +96,13 @@ export default class MQlParser {
                 lexedLine[j].end + 2
               );
             }
+
             let fetchExpr: AST.FetchExpression = {
               type: "FetchExpression",
-              url: lexedLine[j + 1].word,
+              
+              url: lexedLine[j+1].tokenType === TokenType.IDENTIFIER ? 
+                this.ENS[lexedLine[j + 1].word] : 
+                lexedLine[j+1].word,
               format: null,
               location: {
                 row: i + 1,
@@ -105,7 +117,6 @@ export default class MQlParser {
               target.value = fetchExpr;
               break;
             }
-            this.NS[tail.word] = fetchExpr;
             this.AST.body.push(fetchExpr);
             break;
           case Tokens.AS: {
@@ -130,11 +141,11 @@ export default class MQlParser {
               );
             }
 
-            let target = this.AST.body[
-              this.AST.body.length - 1
-            ] as AST.FetchExpression;
-            target.format =
-              AST.DataType[fetchFormat as keyof typeof AST.DataType];
+            let target = this.AST.body[this.AST.body.length - 1] as AST.VarDeclaration;
+            let fetchTarget = target.value as AST.FetchExpression;
+            fetchTarget.format = AST.DataType[fetchFormat as keyof typeof AST.DataType];
+
+            this.AST.body[this.AST.body.length - 1 ] = target;
             break;
           }
           case Tokens.PIPE: // cast any variable or literal to an output
@@ -284,6 +295,14 @@ export default class MQlParser {
               orExpr.code = Number(lexedLine[j + 2].word);
             }
             this.AST.body.push(orExpr);
+            break;
+          case Tokens.EXTERN: 
+            if (
+              !lexedLine[j+1] || 
+              lexedLine[j+1]?.tokenType !== TokenType.IDENTIFIER
+            ) {
+              throw new MQLSyntaxError(`EXTERN expects a valid identifier, got ${lexedLine[j+1]?.tokenType ?? "none"}`, i, lexedLine[j].end);
+            }
             break;
         }
       }

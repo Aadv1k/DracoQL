@@ -52,6 +52,10 @@ export default class MQLLexer {
         obj.tokenType = TokenType.KEYWORD;
         this.stack.push(obj)
         break;
+      case Tokens.TEXT: 
+        obj.tokenType = TokenType.KEYWORD;
+        this.stack.push(obj)
+        break;
       case Tokens.PIPE: 
         obj.tokenType = TokenType.KEYWORD;
         this.stack.push(obj)
@@ -87,7 +91,8 @@ export default class MQLLexer {
           (
             this.stack[this.stack.length - 1]?.word === "VAR" ||
             this.stack[this.stack.length - 1]?.word === "PIPE" ||
-            this.stack[this.stack.length - 1]?.word === "EXTERN" 
+            this.stack[this.stack.length - 1]?.word === "EXTERN" || 
+            this.stack[this.stack.length - 1]?.word === "FETCH"
             && !isStr
           ) && !isURL(obj.word)
         ) {

@@ -1,14 +1,12 @@
 # MoleQL ⛏️
 
-MoleQL is a TypeScript-based DSL for web scraping and data manipulation with tooling to pull data from files, web or databas and pipe it to different sources.
+MoleQL is a TypeScript-based embeddable DSL for web scraping and data manipulation with tooling to pull data from files, web or databas and pipe it to different sources.
 
 ## Features
 
 - Simple and intuitive syntax
-- Static typing for better type safety
 - Support for most data sources (web, JSON, text)
 - Error handling for robustness
-- Integration with other languages
 
 ## Hello world
 
@@ -21,11 +19,11 @@ PIPE "hello world!" TO STDOUT
 ### Fetch data and log it to the console
 
 ```
-VAR data = GET URL https://jsonplaceholder.typicode.com/posts 
+VAR data = FETCH https://jsonplaceholder.typicode.com/posts 
   AS JSON 
   OR DIE // exit if data is not valid JSON
 
-VAR title = DATA[0].title
+VAR title = data[0].title
 PIPE title TO STDOUT
 ```
 
@@ -38,4 +36,3 @@ PIPE headline
   TO FILE headline.txt
   TO STDOUT
 ```
-
