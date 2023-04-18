@@ -3,10 +3,10 @@ import MQLParser from "./Parser";
 import DQLInterpreter from "./Interpreter";
 
 
-//
-//VAR data = FETCH url AS JSON
-//OR DIE 
 let str = `
+// VAR data = FETCH url AS JSON
+// OR DIE 
+
 PIPE "foo" TO STDOUT // hello world
 `; 
 

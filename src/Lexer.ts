@@ -128,11 +128,13 @@ export default class DQLLexer {
     let open = false;
     let quotes = "";
 
+    if (line.startsWith('//')) return [];
+
     while (!this.end) {
       let cur = this.advance(line);
 
       // check for a comment
-      if (cur === "/" && this.input[this.cursor + 1 ] === '/') {
+      if (cur === "/" && line[this.cursor + 1 ] === '/') {
         let local = this.stack;
         this.stack = [];
         return local;
@@ -179,7 +181,14 @@ export default class DQLLexer {
   lex(): Lex {
     let lines = this.input.split('\n');
     let parsed = lines.map((line: string, i) => {
-      return [i+1, this.lexLine(line)] as [number, Token[]]
+      let arr: Token[];
+
+      if (line.startsWith('//')) {
+        arr = [];
+      } else {
+        arr = this.lexLine(line);
+      }
+      return [i+1, arr] as [number, Token[]]
     });
     return parsed;
   }

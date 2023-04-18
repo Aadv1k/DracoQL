@@ -1,5 +1,5 @@
-import * as AST from "../types/ast";
 import * as Lexer from "../types/lexer";
+import * as AST from "../types/ast";
 import fetchBuffer from "../lib/fetch";
 import { DQLSyntaxError, DQLNetworkError, DQLReferenceError } from "./Exceptions";
 
@@ -13,7 +13,6 @@ export default class DQLInterpreter {
     this.ASTDocument = ASTDocument;
     this.NS = {};
   }
-
 
   async evalFetch(node: AST.FetchExpression, orNode?: AST.OrExpression): Promise<string | object> {
     let response: Array<Buffer> = await fetchBuffer(node.url).catch((_) => {
