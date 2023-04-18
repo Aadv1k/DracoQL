@@ -4,7 +4,9 @@ import DQLInterpreter from "./Interpreter";
 
 
 let str = `
-VAR data = FETCH https://google.com AS TEXT
+VAR data = FETCH https://jsonplaceholder.typicode.com/users/1 AS JSON
+PIPE data TO FILE "hello.txt"
+
 `; 
 
 (async () => {

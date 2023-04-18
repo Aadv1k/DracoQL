@@ -28,7 +28,8 @@ export default class DQLInterpreter {
 
     if (node.format === AST.DataType.JSON) {
       try {
-        ret = JSON.parse(data);
+        // TODO: figure out how to store stuff as JSON
+        ret = data;
       } catch (SyntaxError) {
         switch (orNode?.handler) {
           case AST.OrType.EXIT: 
