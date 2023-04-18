@@ -7,7 +7,7 @@ import MQLInterpreter from "./Interpreter";
 //VAR data = FETCH url AS JSON
 //OR DIE 
 let str = `
-PIPE "foo" TO STDOUT
+PIPE "foo" TO STDOUT // hello world
 `; 
 
 (async () => {

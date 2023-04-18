@@ -6,9 +6,11 @@ MoleQL is a TypeScript-based embeddable DSL for web scraping and data manipulati
 
 - Simple and intuitive syntax
 - Support for most data sources (web, JSON, text)
-- Error handling for robustness
+- Functional error handling
 
 ## Hello world
+
+Although `MoleQL` isn't really meant for that, here is a `hello world`
 
 ```
 PIPE "hello world!" TO STDOUT

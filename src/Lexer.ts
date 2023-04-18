@@ -117,6 +117,7 @@ export default class MQLLexer {
           throw new MQLSyntaxError(`Unknown token ${token}`);
         }
 
+
         obj.tokenType = TokenType.STRING_LITERAL;
         this.stack.push(obj)
     }
@@ -129,6 +130,13 @@ export default class MQLLexer {
 
     while (!this.end) {
       let cur = this.advance(line);
+
+      // check for a comment
+      if (cur === "/" && this.input[this.cursor + 1 ] === '/') {
+        let local = this.stack;
+        this.stack = [];
+        return local;
+      }
 
       if (cur === "\"" && !open) {
         open = true;
