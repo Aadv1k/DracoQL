@@ -1,8 +1,8 @@
 import { Tokens, Lex, TokenType } from "../types/lexer";
 import * as AST from "../types/ast";
-import { MQLSyntaxError, MQLReferenceError } from "./Exceptions";
+import { DQLSyntaxError } from "./Exceptions";
 
-export default class MQlParser {
+export default class DQLParser {
   private lexedInput: Lex;
   private ENS: any;
   private AST: AST.ASTDocument;
@@ -33,7 +33,7 @@ export default class MQlParser {
           case Tokens.VAR:
             let literal = lexedLine[j + 1];
             if (literal?.tokenType !== TokenType.IDENTIFIER) {
-              throw new MQLSyntaxError(
+              throw new DQLSyntaxError(
                 "variable name expected",
                 line,
                 lexedLine[j].end + 2
@@ -56,7 +56,7 @@ export default class MQlParser {
               lexedLine[j + 1]?.tokenType === TokenType.OPERATOR ||
               !lexedLine[j + 1]
             ) {
-              throw new MQLSyntaxError(
+              throw new DQLSyntaxError(
                 `expected LHS declaration, got ${
                   lexedLine[j + 1]?.tokenType.toLowerCase() ?? "none"
                 }`,
@@ -88,7 +88,7 @@ export default class MQlParser {
               lexedLine[j+1]?.tokenType !== TokenType.IDENTIFIER && 
               !this.ENS[lexedLine[j+1].word]
             ) {
-              throw new MQLSyntaxError(
+              throw new DQLSyntaxError(
                 `FETCH expects a URL_LITERAL got ${
                   lexedLine[j + 1]?.tokenType ?? "none"
                 }`,
@@ -124,7 +124,7 @@ export default class MQlParser {
             let dataTypes: Array<string> = Object.values(AST.DataType);
             let fetchFormat: string = lexedLine[j + 1]?.word;
             if (!lexedLine[j + 1] || !dataTypes.includes(fetchFormat)) {
-              throw new MQLSyntaxError(
+              throw new DQLSyntaxError(
                 `AS expects a valid data type got ${
                   lexedLine[j + 1]?.word ?? "none"
                 }`,
@@ -134,7 +134,7 @@ export default class MQlParser {
             }
 
             if (tail?.value?.type !== "FetchExpression") {
-              throw new MQLSyntaxError(
+              throw new DQLSyntaxError(
                 `AS needs a valid expression to cast`,
                 line,
                 lexedLine[j].end + 1
@@ -157,7 +157,7 @@ export default class MQlParser {
                 lexedLine[j + 1]?.tokenType === TokenType.URL_LITERAL
               )
             ) {
-              throw new MQLSyntaxError(
+              throw new DQLSyntaxError(
                 `PIPE needs a valid literal or reference`,
                 line,
                 lexedLine[j].end + 1
@@ -184,7 +184,7 @@ export default class MQlParser {
             break;
           case Tokens.TO: // cast a PIPE expression to provided output
             if (tail?.type !== "PipeExpression") {
-              throw new MQLSyntaxError(
+              throw new DQLSyntaxError(
                 `TO excepts a valid PIPE expression before`,
                 i + 1,
                 lexedLine[j].end + 1
@@ -197,7 +197,7 @@ export default class MQlParser {
               toOutput.tokenType !== TokenType.KEYWORD ||
               !toOutputValues.includes(toOutput.word)
             ) {
-              throw new MQLSyntaxError(
+              throw new DQLSyntaxError(
                 `TO expects a valid destination, got ${
                   toOutput
                     ? `a ${toOutput.tokenType.toLowerCase()} '${toOutput.word}'`
@@ -209,7 +209,7 @@ export default class MQlParser {
             }
 
             if (tail?.type !== "PipeExpression") {
-              throw new MQLSyntaxError(
+              throw new DQLSyntaxError(
                 `TO expects a PIPE expression, got ${tail?.type ?? "none"}`,
                 i,
                 lexedLine[j].begin
@@ -226,7 +226,7 @@ export default class MQlParser {
                 !lexedLine[j + 2] ||
                 lexedLine[j + 2]?.tokenType !== TokenType.IDENTIFIER
               )
-                throw new MQLSyntaxError(
+                throw new DQLSyntaxError(
                   `EXTERN expects a valid identifier found ${
                     lexedLine?.[j + 2]?.tokenType ?? "none"
                   }`,
@@ -253,7 +253,7 @@ export default class MQlParser {
               lexedLine?.[j + 1]?.tokenType !== TokenType.KEYWORD ||
               !vals.includes(lexedLine?.[j + 1].word)
             ) {
-              throw new MQLSyntaxError(
+              throw new DQLSyntaxError(
                 `OR expected a valid handler, found ${
                   lexedLine?.[j + 1].tokenType.toLowerCase() ?? "none"
                 }`,
@@ -269,7 +269,7 @@ export default class MQlParser {
                 tail?.type === "PipeExpression"
               )
             ) {
-              throw new MQLSyntaxError(
+              throw new DQLSyntaxError(
                 `OR expected a valid expression to handle, found ${
                   tail?.type ?? "none"
                 }`,
@@ -285,7 +285,7 @@ export default class MQlParser {
 
             if (lexedLine[j + 1].word === "EXIT") {
               if (lexedLine[j + 2].tokenType !== TokenType.INT_LITERAL)
-                throw new MQLSyntaxError(
+                throw new DQLSyntaxError(
                   `EXIT expected a valid INT_LITERAL, found ${
                     lexedLine[j + 2]?.tokenType ?? "none"
                   }`,
@@ -301,7 +301,7 @@ export default class MQlParser {
               !lexedLine[j+1] || 
               lexedLine[j+1]?.tokenType !== TokenType.IDENTIFIER
             ) {
-              throw new MQLSyntaxError(`EXTERN expects a valid identifier, got ${lexedLine[j+1]?.tokenType ?? "none"}`, i, lexedLine[j].end);
+              throw new DQLSyntaxError(`EXTERN expects a valid identifier, got ${lexedLine[j+1]?.tokenType ?? "none"}`, i, lexedLine[j].end);
             }
             break;
         }

@@ -1,6 +1,6 @@
-# MoleQL ⛏️
+# DracoQL 🐉
 
-MoleQL is a TypeScript-based embeddable DSL for web scraping and data manipulation with tooling to pull data from files, web or databas and pipe it to different sources.
+DracoQL is a TypeScript-based embeddable DSL for web scraping and data manipulation with tooling to pull data from files, web or databas and pipe it to different sources.
 
 ## Features
 
@@ -10,7 +10,7 @@ MoleQL is a TypeScript-based embeddable DSL for web scraping and data manipulati
 
 ## Hello world
 
-Although `MoleQL` isn't really meant for that, here is a `hello world`
+Although `DracoQL` isn't really meant for that, here is a `hello world`
 
 ```
 PIPE "hello world!" TO STDOUT

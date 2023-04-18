@@ -1,8 +1,8 @@
 import { TokenType, Token, Tokens, Lex } from "../types/lexer";
-import { MQLSyntaxError } from "./Exceptions";
+import { DQLSyntaxError } from "./Exceptions";
 import { isURL } from "../lib/utils";
 
-export default class MQLLexer {
+export default class DQLLexer {
   private input: string;
   private cursor: number;
   private end: boolean;
@@ -114,7 +114,7 @@ export default class MQLLexer {
         }
 
         if (!isStr) {
-          throw new MQLSyntaxError(`Unknown token ${token}`);
+          throw new DQLSyntaxError(`Unknown token ${token}`);
         }
 
 
@@ -164,7 +164,7 @@ export default class MQLLexer {
     }
 
     if (open) {
-      throw new MQLSyntaxError("string literal must be terminated");
+      throw new DQLSyntaxError("string literal must be terminated");
     }
 
     this.cursor = -1;

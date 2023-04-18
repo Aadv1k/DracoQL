@@ -1,11 +1,11 @@
 import * as AST from "../types/ast";
 import * as Lexer from "../types/lexer";
 import fetchBuffer from "../lib/fetch";
-import { MQLSyntaxError, MQLNetworkError, MQLReferenceError } from "./Exceptions";
+import { DQLSyntaxError, DQLNetworkError, DQLReferenceError } from "./Exceptions";
 
 const ERR_EXIT_CODE = 1;
 
-export default class MQLInterpreter {
+export default class DQLInterpreter {
   ASTDocument: AST.ASTDocument;
   NS: any;
 
@@ -17,7 +17,7 @@ export default class MQLInterpreter {
 
   async evalFetch(node: AST.FetchExpression, orNode?: AST.OrExpression): Promise<string | object> {
     let response: Array<Buffer> = await fetchBuffer(node.url).catch((_) => {
-      throw new MQLNetworkError("unable to parse FETCH expression");
+      throw new DQLNetworkError("unable to parse FETCH expression");
     });
 
     let data = response.toString();
@@ -34,7 +34,7 @@ export default class MQLInterpreter {
           case AST.OrType.DIE:
             process.exit(ERR_EXIT_CODE)
         }
-        throw new MQLSyntaxError(
+        throw new DQLSyntaxError(
           "received invalid JSON while parsing FETCH expression"
         );
       }
@@ -51,7 +51,7 @@ export default class MQLInterpreter {
       src = node.source.value;
     } else if (node.source.type ===  Lexer.TokenType.IDENTIFIER) {
       let foundVar = this.NS?.[node.source.value];
-      if (!foundVar) throw new MQLReferenceError(`was unable to find variable '${node.source.value}'`);
+      if (!foundVar) throw new DQLReferenceError(`was unable to find variable '${node.source.value}'`);
       src = foundVar.value;
     }
 

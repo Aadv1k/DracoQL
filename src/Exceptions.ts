@@ -1,23 +1,23 @@
-export class MQLSyntaxError extends Error {
+export class DQLSyntaxError extends Error {
   constructor(message: string, row?: number, col?: number) {
     super(`Invalid syntax${(row && col) ? ` at line ${row} and column ${col}` : ''}: ${message}`);
-    this.name = 'MQLSyntaxError';
+    this.name = 'DQLSyntaxError';
     this.stack = '';
   }
 }
 
-export class MQLReferenceError extends Error {
+export class DQLReferenceError extends Error {
   constructor(message: string, row?: number, col?: number) {
     super(`variable not found${(row && col) ? ` at line ${row} and column ${col}` : ''}: ${message}`);
-    this.name = 'MQLReferenceError';
+    this.name = 'DQLReferenceError';
     this.stack = '';
   }
 }
 
-export class MQLNetworkError extends Error {
+export class DQLNetworkError extends Error {
   constructor(message: string, row?: number, col?: number) {
     super(`network error ${(row && col) ? ` at line ${row} and column ${col}` : ''}: ${message}`);
-    this.name = 'MQLNetworkError';
+    this.name = 'DQLNetworkError';
     this.stack = '';
   }
 }

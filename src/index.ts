@@ -1,6 +1,6 @@
-import MQLLexer from "./Lexer";
+import DQLLexer from "./Lexer";
 import MQLParser from "./Parser";
-import MQLInterpreter from "./Interpreter";
+import DQLInterpreter from "./Interpreter";
 
 
 //
@@ -11,9 +11,9 @@ PIPE "foo" TO STDOUT // hello world
 `; 
 
 (async () => {
-  const lexer = new MQLLexer(str);
+  const lexer = new DQLLexer(str);
   const parser = new MQLParser(lexer.lex());
-  const interpreter = new MQLInterpreter(parser.parse())
+  const interpreter = new DQLInterpreter(parser.parse())
   await interpreter.run();
 })();
 
