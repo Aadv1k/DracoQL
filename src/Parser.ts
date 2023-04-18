@@ -239,9 +239,19 @@ export default class DQLParser {
                   lexedLine[j + 1].end
                 );
 
-              // the intepreter should handle this instead
-              // if (!this.NS?.[lexedLine[j+2].word]) throw new MQLSyntaxError(`EXTERN expected a valid variable, found ${lexedLine[j+2].word}`, i, lexedLine[j+2].begin);
-
+              pipeDestExpr.value = lexedLine[j + 2].word;
+            } else if (pipeDestExpr.type === AST.DestType.FILE) {
+              if (
+                !lexedLine[j + 2] ||
+                lexedLine[j + 2]?.tokenType !== TokenType.STRING_LITERAL
+              )
+                throw new DQLSyntaxError(
+                  `FILE expects a valid file path found ${
+                    lexedLine?.[j + 2]?.tokenType ?? "none"
+                  }`,
+                  i,
+                  lexedLine[j + 1].end
+                );
               pipeDestExpr.value = lexedLine[j + 2].word;
             }
 

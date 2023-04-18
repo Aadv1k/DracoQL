@@ -27,6 +27,7 @@ export enum Tokens {
   FETCH = "FETCH",
   TEXT = "TEXT",
   JSON = "JSON",
+  FILE = "FILE",
   AS = "AS",
   PIPE = "PIPE",
   STDOUT = "STDOUT",

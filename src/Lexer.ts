@@ -52,6 +52,10 @@ export default class DQLLexer {
         obj.tokenType = TokenType.KEYWORD;
         this.stack.push(obj)
         break;
+      case Tokens.FILE: 
+        obj.tokenType = TokenType.KEYWORD;
+        this.stack.push(obj)
+        break;
       case Tokens.TEXT: 
         obj.tokenType = TokenType.KEYWORD;
         this.stack.push(obj)

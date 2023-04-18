@@ -5,7 +5,6 @@ import DQLInterpreter from "./Interpreter";
 
 let str = `
 VAR data = FETCH https://google.com AS TEXT
-PIPE data TO STDOUT
 `; 
 
 (async () => {

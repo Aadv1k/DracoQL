@@ -1,6 +1,8 @@
 import * as Lexer from "../types/lexer";
 import * as AST from "../types/ast";
 import fetchBuffer from "../lib/fetch";
+import fs from "node:fs";
+import path from "node:path";
 import { DQLSyntaxError, DQLNetworkError, DQLReferenceError } from "./Exceptions";
 
 const ERR_EXIT_CODE = 1;
@@ -57,6 +59,8 @@ export default class DQLInterpreter {
 
     if (node.destination.type === AST.DestType.STDOUT) {
       process.stdout.write(src + '\n');
+    } else if (node.destination.type === AST.DestType.FILE) {
+      fs.writeFileSync(path.join(__dirname, node.destination.value as string), src as string);
     }
   }
 
