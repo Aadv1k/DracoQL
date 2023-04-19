@@ -1,7 +1,11 @@
-import Eval from './Eval';
-
-export default Eval;
+import eval from './Eval';
+import interpreter from './Interpreter';
+import parser from "./Parser";
+import lexer from "./Lexer";
 
 export {
-  Eval,
+  interpreter,
+  lexer,
+  parser,
+  eval
 };

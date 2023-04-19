@@ -130,6 +130,10 @@ export default class DQLLexer {
           break;
         }
 
+        if (!isStr && this.stack[this.stack.length - 1]?.tokenType === TokenType.IDENTIFIER) {
+          throw new DQLSyntaxError(`Unknown token ${token}`);
+        }
+
         if (
           isLowerCase(obj.word) &&
           !isStr &&
@@ -151,10 +155,6 @@ export default class DQLLexer {
           obj.tokenType = TokenType.INT_LITERAL;
           this.stack.push(obj);
           break;
-        }
-
-        if (!isStr) {
-          throw new DQLSyntaxError(`Unknown token ${token}`);
         }
 
         obj.tokenType = TokenType.STRING_LITERAL;
