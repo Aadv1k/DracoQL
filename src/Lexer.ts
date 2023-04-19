@@ -20,10 +20,10 @@ export default class DQLLexer {
       this.end = true;
     }
     this.cursor++;
-    return line[this.cursor]
+    return line[this.cursor];
   }
 
-  handleToken(token: string, isStr?: boolean): void  {
+  handleToken(token: string, isStr?: boolean): void {
     let obj: Token = {
       word: token.trim(),
       begin: this.cursor - token.trim().length,
@@ -32,134 +32,133 @@ export default class DQLLexer {
     };
 
     switch (token.trim()) {
-      case Tokens.EQUALTO: 
+      case Tokens.EQUALTO:
         obj.tokenType = TokenType.OPERATOR;
-        this.stack.push(obj)
+        this.stack.push(obj);
         break;
       case Tokens.VAR:
         obj.tokenType = TokenType.KEYWORD;
-        this.stack.push(obj)
+        this.stack.push(obj);
         break;
-      case Tokens.FETCH: 
+      case Tokens.FETCH:
         obj.tokenType = TokenType.KEYWORD;
-        this.stack.push(obj)
+        this.stack.push(obj);
         break;
-      case Tokens.EXTRACT: 
+      case Tokens.EXTRACT:
         obj.tokenType = TokenType.KEYWORD;
-        this.stack.push(obj)
+        this.stack.push(obj);
         break;
-      case Tokens.FROM: 
+      case Tokens.FROM:
         obj.tokenType = TokenType.KEYWORD;
-        this.stack.push(obj)
+        this.stack.push(obj);
         break;
-      case Tokens.HEADER: 
+      case Tokens.HEADER:
         obj.tokenType = TokenType.KEYWORD;
-        this.stack.push(obj)
+        this.stack.push(obj);
         break;
-      case Tokens.METHOD: 
+      case Tokens.METHOD:
         obj.tokenType = TokenType.KEYWORD;
-        this.stack.push(obj)
+        this.stack.push(obj);
         break;
-      case Tokens.BODY: 
+      case Tokens.BODY:
         obj.tokenType = TokenType.KEYWORD;
-        this.stack.push(obj)
+        this.stack.push(obj);
         break;
-      case Tokens.FORM: 
+      case Tokens.FORM:
         obj.tokenType = TokenType.KEYWORD;
-        this.stack.push(obj)
+        this.stack.push(obj);
         break;
-      case Tokens.HEADER: 
+      case Tokens.HEADER:
         obj.tokenType = TokenType.KEYWORD;
-        this.stack.push(obj)
+        this.stack.push(obj);
         break;
-      case Tokens.AS: 
+      case Tokens.AS:
         obj.tokenType = TokenType.KEYWORD;
-        this.stack.push(obj)
+        this.stack.push(obj);
         break;
-      case Tokens.JSON: 
+      case Tokens.JSON:
         obj.tokenType = TokenType.KEYWORD;
-        this.stack.push(obj)
+        this.stack.push(obj);
         break;
-      case Tokens.HTML: 
+      case Tokens.HTML:
         obj.tokenType = TokenType.KEYWORD;
-        this.stack.push(obj)
+        this.stack.push(obj);
         break;
-      case Tokens.FILE: 
+      case Tokens.FILE:
         obj.tokenType = TokenType.KEYWORD;
-        this.stack.push(obj)
+        this.stack.push(obj);
         break;
-      case Tokens.TEXT: 
+      case Tokens.TEXT:
         obj.tokenType = TokenType.KEYWORD;
-        this.stack.push(obj)
+        this.stack.push(obj);
         break;
-      case Tokens.PIPE: 
+      case Tokens.PIPE:
         obj.tokenType = TokenType.KEYWORD;
-        this.stack.push(obj)
+        this.stack.push(obj);
         break;
-      case Tokens.STDOUT: 
+      case Tokens.STDOUT:
         obj.tokenType = TokenType.KEYWORD;
-        this.stack.push(obj)
+        this.stack.push(obj);
         break;
-      case Tokens.TO: 
+      case Tokens.TO:
         obj.tokenType = TokenType.KEYWORD;
-        this.stack.push(obj)
+        this.stack.push(obj);
         break;
       case Tokens.DIE:
         obj.tokenType = TokenType.KEYWORD;
-        this.stack.push(obj)
+        this.stack.push(obj);
         break;
       case Tokens.EXIT:
         obj.tokenType = TokenType.KEYWORD;
-        this.stack.push(obj)
+        this.stack.push(obj);
         break;
       case Tokens.OR:
         obj.tokenType = TokenType.KEYWORD;
-        this.stack.push(obj)
+        this.stack.push(obj);
         break;
-      case Tokens.EXTERN: 
+      case Tokens.EXTERN:
         obj.tokenType = TokenType.KEYWORD;
         this.stack.push(obj);
         break;
 
-      default: 
+      default:
         if (token.trim().length < 1) break;
 
-        if  (this.stack[this.stack.length - 1]?.word === "EXTRACT")  {
+        if (this.stack[this.stack.length - 1]?.word === "EXTRACT") {
           obj.tokenType = TokenType.QUERY_LITERAL;
-          this.stack.push(obj)
+          this.stack.push(obj);
           break;
         }
 
-       if (
-            isLowerCase(obj.word)
-            && !isStr
-            && !isURL(obj.word)
-            && !Number(obj.word)
+        if (
+          isLowerCase(obj.word) &&
+          !isStr &&
+          !isURL(obj.word) &&
+          !Number(obj.word)
         ) {
           obj.tokenType = TokenType.IDENTIFIER;
-          this.stack.push(obj)
+          this.stack.push(obj);
           break;
         }
 
         if (isURL(obj.word)) {
           obj.tokenType = TokenType.URL_LITERAL;
-          this.stack.push(obj)
+          this.stack.push(obj);
           break;
         }
 
         if (Number.isInteger(Number(obj.word))) {
           obj.tokenType = TokenType.INT_LITERAL;
-          this.stack.push(obj)
-          break
+          this.stack.push(obj);
+          break;
         }
 
         if (!isStr) {
           throw new DQLSyntaxError(`Unknown token ${token}`);
         }
 
-
         obj.tokenType = TokenType.STRING_LITERAL;
-        this.stack.push(obj)
+        this.stack.push(obj);
     }
   }
 
@@ -169,32 +168,28 @@ export default class DQLLexer {
     let singleOpen = false;
     let quotes = "";
 
-    if (line.startsWith('//')) return [];
+    if (line.startsWith("//")) return [];
 
     while (!this.end) {
       let cur = this.advance(line);
 
-      if (
-        cur === "'" && !singleOpen) {
+      if (cur === "'" && !singleOpen) {
         singleOpen = true;
         continue;
       }
 
-
-      if (
-        cur === "\"" && !open && !singleOpen) {
+      if (cur === '"' && !open && !singleOpen) {
         open = true;
         continue;
       }
 
-      if (
-        cur === "'" && singleOpen) {
+      if (cur === "'" && singleOpen) {
         this.handleToken(quotes, true);
         singleOpen = false;
         continue;
       }
 
-      if (cur === "\"" && open && !singleOpen) {
+      if (cur === '"' && open && !singleOpen) {
         this.handleToken(quotes, true);
         quotes = "";
         open = false;
@@ -233,16 +228,16 @@ export default class DQLLexer {
   }
 
   lex(): Lex {
-    let lines = this.input.split('\n');
+    let lines = this.input.split("\n");
     let parsed = lines.map((line: string, i) => {
       let arr: Token[];
 
-      if (line.startsWith('//')) {
+      if (line.startsWith("//")) {
         arr = [];
       } else {
         arr = this.lexLine(line);
       }
-      return [i+1, arr] as [number, Token[]]
+      return [i + 1, arr] as [number, Token[]];
     });
     return parsed;
   }
