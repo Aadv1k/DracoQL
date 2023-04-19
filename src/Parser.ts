@@ -82,7 +82,6 @@ export default class DQLParser {
               );
             }
             if (
-              lexedLine[j + 1].tokenType === TokenType.URL_LITERAL ||
               lexedLine[j + 1].tokenType === TokenType.STRING_LITERAL ||
               lexedLine[j + 1].tokenType === TokenType.INT_LITERAL
             ) {
@@ -116,7 +115,7 @@ export default class DQLParser {
                   `unable to find variable ${lexedLine[j + 1]?.word ?? ""}`
                 );
               targetUrl = this.ENS[lexedLine[j + 1].word];
-            } else if (lexedLine[j + 1].tokenType === TokenType.URL_LITERAL) {
+            } else if (lexedLine[j + 1].tokenType === TokenType.STRING_LITERAL) {
               targetUrl = lexedLine[j + 1].word;
             }
 
@@ -138,6 +137,7 @@ export default class DQLParser {
               target.value = fetchExpr;
               break;
             }
+
             this.AST.body.push(fetchExpr);
             break;
           case Tokens.METHOD: {
@@ -260,10 +260,10 @@ export default class DQLParser {
           case Tokens.EXTRACT: {
             if (
               !lexedLine[j + 1] ||
-              lexedLine[j + 1].tokenType !== TokenType.QUERY_LITERAL
+              lexedLine[j + 1].tokenType !== TokenType.STRING_LITERAL
             ) {
               throw new DQLSyntaxError(
-                "EXTRACT expects a query literal, got something else",
+                "EXTRACT expects a string",
                 i,
                 lexedLine[j].end
               );
@@ -379,8 +379,7 @@ export default class DQLParser {
               !lexedLine[j + 1] ||
               !(
                 lexedLine[j + 1]?.tokenType === TokenType.IDENTIFIER ||
-                lexedLine[j + 1]?.tokenType === TokenType.STRING_LITERAL ||
-                lexedLine[j + 1]?.tokenType === TokenType.URL_LITERAL
+                lexedLine[j + 1]?.tokenType === TokenType.STRING_LITERAL
               )
             ) {
               throw new DQLSyntaxError(

@@ -28,7 +28,7 @@ export default class DQLLexer {
       word: token.trim(),
       begin: this.cursor - token.trim().length,
       end: this.cursor - 1,
-      tokenType: TokenType.NULL,
+      tokenType: TokenType.STRING_LITERAL,
     };
 
     switch (token.trim()) {
@@ -124,32 +124,12 @@ export default class DQLLexer {
       default:
         if (token.trim().length < 1) break;
 
-        if (this.stack[this.stack.length - 1]?.word === "EXTRACT") {
-          obj.tokenType = TokenType.QUERY_LITERAL;
-          this.stack.push(obj);
-          break;
-        }
-
-        if (!isStr && this.stack[this.stack.length - 1]?.tokenType === TokenType.IDENTIFIER) {
-          throw new DQLSyntaxError(`Unknown token ${token}`);
-        }
-
-        if (
-          isLowerCase(obj.word) &&
-          !isStr &&
-          !isURL(obj.word) &&
-          !Number(obj.word)
-        ) {
+        if (!isStr && !isURL(obj.word) && !Number(obj.word)) {
           obj.tokenType = TokenType.IDENTIFIER;
           this.stack.push(obj);
           break;
         }
 
-        if (isURL(obj.word)) {
-          obj.tokenType = TokenType.URL_LITERAL;
-          this.stack.push(obj);
-          break;
-        }
 
         if (Number.isInteger(Number(obj.word))) {
           obj.tokenType = TokenType.INT_LITERAL;

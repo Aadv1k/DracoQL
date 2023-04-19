@@ -3,10 +3,7 @@ export enum TokenType {
   KEYWORD = "KEYWORD",
   IDENTIFIER = "IDENTIFIER",
   STRING_LITERAL = "STRING_LITERAL",
-  URL_LITERAL = "URL_LITERAL",
   INT_LITERAL = "INT_LITERAL",
-  QUERY_LITERAL = "QUERY_LITERAL",
-  NULL = "NULL",
 }
 
 export interface Token {
