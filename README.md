@@ -1,14 +1,8 @@
 # DracoQL 🐉
 
-DracoQL is a powerful and flexible embeddable query language for processing and transforming large data from the web, databases or even files and piping it to outputs.
+DracoQL is a an embeddable query language for processing and transforming data from the web resources and writing it to files and databases.
 
-**It is still in development but provides a set of modules that can be used to perform operations on data in a structured way.**
-
-## Features
-
-- Simple and intuitive syntax
-- Support for most data sources (web, JSON, text)
-- Functional error handling
+**Language actively in development, please report any bugs under issues.**
 
 ## Get
 
@@ -24,15 +18,22 @@ import draco from "dracoql";
 draco.eval(`PIPE "Hello world!" TO STDOUT`);
 ```
 
+Additionally, you can get runtime variables from the caller
+
+```typescript
+import draco from "dracoql";
+
+draco.eval(`VAR data = FETCH https://jsonplaceholder.typicode.com/todos/ AS JSON`, (ctx) => {
+  console.log(ctx.getVar("data"))
+});
+```
+
 ## Examples
 
 ### Fetch data and log it to the console
 
 ```cql
-VAR data = FETCH https://jsonplaceholder.typicode.com/posts 
-  AS JSON 
-  OR DIE // exit if data is not valid JSON
-
+VAR data = FETCH https://www.cs.cmu.edu/afs/cs/project/ai-repository/ai/areas/nlp/corpora/names/male.txt
 PIPE title TO STDOUT
 ```
 
@@ -41,19 +42,23 @@ PIPE title TO STDOUT
 ```cql
 VAR data = FETCH https://jsonplaceholder.typicode.com/users/1 
   AS JSON 
-  OR DIE // exit if data is not valid JSON
+  OR DIE 
 
 PIPE data TO FILE "user.json" 
 ```
 
-<!--
 ### Scrape data from a website 
 
 ```
-VAR bloomberg_data = GET URL https://www.bloomberg.com/asia AS HTML
-VAR headline = EXTRACT /html/body/div[3]/main/section[1]/section/section/article/section/a FROM bloomberg_data
-PIPE headline 
-  TO FILE headline.txt
-  TO STDOUT
+VAR data = FETCH https://www.cnet.com/
+
+VAR headline = EXTRACT 
+  .c-pageHomeHightlights>div:nth-child(1)>div:nth-child(2)>div:nth-child(1)>a:nth-child(1)>div:nth-child(1)>div:nth-child(2)>div:nth-child(1)>h3:nth-child(1)>span:nth-child(1) 
+  FROM data 
+  AS HTML
+
+VAR txt = EXTRACT innerText FROM headline 
+  AS JSON
+
+PIPE txt TO STDOUT
 ```
--->
