@@ -1,5 +1,5 @@
 {
-  "name": "DracoQL",
+  "name": "dracoql",
   "version": "1.0.0",
   "description": "DracoQL is a TypeScript-based DSL for web scraping and data manipulation with tooling to pull data from files, web or databas and pipe it to different sources.",
   "main": "./dist/index.js",
@@ -17,5 +17,10 @@
   "dependencies": {
     "@types/node": "^18.15.11",
     "node-html-parser": "^6.1.5"
-  }
+  }, 
+  "files": [
+    "./dist",
+    "LICENSE",
+    "./README.md"
+  ]
 }

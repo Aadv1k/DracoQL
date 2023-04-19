@@ -13,37 +13,15 @@ DracoQL is a powerful and flexible embeddable query language for processing and 
 ## Get
 
 ```shell
-git clone git@github.com:aadv1k/DracoQL
-cd DracoQL && npm install
+npm install dracoql
 ```
 
 ## Usage
 
-Currently the language is in development, so you will have to use internal module.
-
 ```typescript
-import DQLLexer from "./Lexer";
-import MQLParser from "./Parser";
-import DQLInterpreter from "./Interpreter";
+import draco from "dracoql";
 
-let syntax = `
-VAR data = FETCH https://jsonplaceholder.typicode.com/users/1 AS JSON
-PIPE data TO FILE "hello.txt"`; 
-
-(async () => {
-  const lexer = new DQLLexer(syntax);
-  const parser = new MQLParser(lexer.lex());
-  const interpreter = new DQLInterpreter(parser.parse())
-  await interpreter.run();
-})();
-```
-
-## Hello world
-
-Although `DracoQL` isn't really meant for that, here is a `hello world`
-
-```
-PIPE "hello world!" TO STDOUT
+draco.eval(`PIPE "Hello world!" TO STDOUT`);
 ```
 
 ## Examples
