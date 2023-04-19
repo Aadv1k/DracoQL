@@ -2,10 +2,11 @@
   "name": "DracoQL",
   "version": "1.0.0",
   "description": "DracoQL is a TypeScript-based DSL for web scraping and data manipulation with tooling to pull data from files, web or databas and pipe it to different sources.",
-  "main": "./dist/",
+  "main": "./dist/index.js",
   "scripts": {
     "dev": "tsc --watch",
-    "build": "tsc"
+    "build": "tsc",
+    "prepare": "npm run build"
   },
   "author": "Aadv1k <aadv1k@outlook.com>",
   "license": "MIT ",
