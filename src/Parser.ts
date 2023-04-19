@@ -158,7 +158,7 @@ export default class DQLParser {
 
             let headersKp = lexedLine[j+1].word.split(':').map(e => e?.trim());
             if (lexedLine[j+1]?.tokenType !== TokenType.STRING_LITERAL) throw new DQLSyntaxError(`HEADER expected a string literal got ${lexedLine[j+1]?.tokenType ?? "none"}`, i, lexedLine[j].begin);
-            if (headersKp.length !== 2) throw new DQLSyntaxError(`invalid HEADER format ${lexedLine[j+1].word}`, i, lexedLine[j].begin);
+            //if (headersKp.length !== 2) throw new DQLSyntaxError(`invalid HEADER format ${lexedLine[j+1].word}`, i, lexedLine[j].begin);
 
             let target = this.AST.body[
               this.AST.body.length - 1

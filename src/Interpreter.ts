@@ -4,6 +4,7 @@ import { GET, POST } from "./lib/fetch";
 import fs from "node:fs";
 import path from "node:path";
 import { DQLSyntaxError, DQLNetworkError, DQLReferenceError, DQLMissingBody } from "./Exceptions";
+import HTML from "node-html-parser" ;
 
 const ERR_EXIT_CODE = 1;
 
@@ -81,7 +82,6 @@ export default class DQLInterpreter {
       frm.value = this.NS[frm?.value]?.value as string;
     }
 
-
     if (node?.format === AST.DataType.JSON) {
       let val;
       try {
@@ -100,6 +100,15 @@ export default class DQLInterpreter {
       if (!query) { throw new DQLSyntaxError(`was unable to parse ${val?.[target]} from JSON`, node.location.row, node.location.col) }
       ret.type = "STRING_LITERAL";
       ret.value = query;
+    } if (node?.format === AST.DataType.HTML) {
+      let parsed = HTML.parse(frm?.value ?? "");
+      let t = parsed.querySelector(target)
+
+      ret.value = JSON.stringify({
+        ...t?.attributes,
+        innerText: t?.childNodes.map(e => e.rawText).join(' ')
+      })
+      ret.type = "JSON"
     }
 
     return ret;
@@ -150,8 +159,8 @@ export default class DQLInterpreter {
 
           let target = node.value as AST.GeneralType;
           this.NS[node.identifier] = { 
-            type: target.type,
-            value: target.value,
+            type: target?.type,
+            value: target?.value,
           };
           break;
         } 

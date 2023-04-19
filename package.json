@@ -13,6 +13,7 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
-    "@types/node": "^18.15.11"
+    "@types/node": "^18.15.11",
+    "node-html-parser": "^6.1.5"
   }
 }
