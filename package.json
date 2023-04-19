@@ -1,11 +1,11 @@
 {
-  "name": "moleql",
+  "name": "DracoQL",
   "version": "1.0.0",
-  "description": "MoleQL is a TypeScript-based DSL for web scraping and data manipulation with tooling to pull data from files, web or databas and pipe it to different sources.",
-  "main": "./dist/index.js",
+  "description": "DracoQL is a TypeScript-based DSL for web scraping and data manipulation with tooling to pull data from files, web or databas and pipe it to different sources.",
+  "main": "./dist/",
   "scripts": {
     "dev": "tsc --watch",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc"
   },
   "author": "Aadv1k <aadv1k@outlook.com>",
   "license": "MIT ",
