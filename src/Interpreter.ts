@@ -1,6 +1,6 @@
-import * as Lexer from "../types/lexer";
-import * as AST from "../types/ast";
-import { GET, POST } from "../lib/fetch";
+import * as Lexer from "./types/lexer";
+import * as AST from "./types/ast";
+import { GET, POST } from "./lib/fetch";
 import fs from "node:fs";
 import path from "node:path";
 import { DQLSyntaxError, DQLNetworkError, DQLReferenceError, DQLMissingBody } from "./Exceptions";

@@ -1,6 +1,6 @@
-import { TokenType, Token, Tokens, Lex } from "../types/lexer";
+import { TokenType, Token, Tokens, Lex } from "./types/lexer";
 import { DQLSyntaxError } from "./Exceptions";
-import { isURL, isLowerCase } from "../lib/utils";
+import { isURL, isLowerCase } from "./lib/utils";
 
 export default class DQLLexer {
   private input: string;

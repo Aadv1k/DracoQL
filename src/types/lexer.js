@@ -1,0 +1,34 @@
+"use strict";
+exports.__esModule = true;
+exports.Tokens = exports.TokenType = void 0;
+var TokenType;
+(function (TokenType) {
+    TokenType["OPERATOR"] = "OPERATOR";
+    TokenType["KEYWORD"] = "KEYWORD";
+    TokenType["IDENTIFIER"] = "IDENTIFIER";
+    TokenType["STRING_LITERAL"] = "STRING_LITERAL";
+    TokenType["URL_LITERAL"] = "URL_LITERAL";
+    TokenType["INT_LITERAL"] = "INT_LITERAL";
+    TokenType["NULL"] = "NULL";
+})(TokenType = exports.TokenType || (exports.TokenType = {}));
+var Tokens;
+(function (Tokens) {
+    Tokens["VAR"] = "VAR";
+    Tokens["OR"] = "OR";
+    Tokens["EXIT"] = "EXIT";
+    Tokens["DIE"] = "DIE";
+    Tokens["EQUALTO"] = "=";
+    Tokens["EXTERN"] = "EXTERN";
+    Tokens["FETCH"] = "FETCH";
+    Tokens["METHOD"] = "METHOD";
+    Tokens["HEADER"] = "HEADER";
+    Tokens["BODY"] = "BODY";
+    Tokens["TEXT"] = "TEXT";
+    Tokens["JSON"] = "JSON";
+    Tokens["FILE"] = "FILE";
+    Tokens["FORM"] = "FORM";
+    Tokens["AS"] = "AS";
+    Tokens["PIPE"] = "PIPE";
+    Tokens["STDOUT"] = "STDOUT";
+    Tokens["TO"] = "TO";
+})(Tokens = exports.Tokens || (exports.Tokens = {}));

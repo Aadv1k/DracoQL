@@ -1,10 +1,6 @@
-import DQLLexer from "./Lexer";
-import MQLParser from "./Parser";
-import DQLInterpreter from "./Interpreter";
-
-/*
- *
-*/
+import DQLLexer from "./src/Lexer";
+import DQLParser from "./src/Parser";
+import DQLInterpreter from "./src/Interpreter";
 
 let str = `
 VAR url = https://ap-.up.railway.app/api/login
@@ -18,7 +14,7 @@ VAR data = FETCH
 
 (async () => {
   const lexer = new DQLLexer(str);
-  const parser = new MQLParser(lexer.lex());
+  const parser = new DQLParser(lexer.lex());
   const interpreter = new DQLInterpreter(parser.parse())
   await interpreter.run();
 })();

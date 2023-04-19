@@ -1,6 +1,6 @@
-import { Tokens, Lex, TokenType } from "../types/lexer";
-import * as AST from "../types/ast";
-import * as Lexer from "../types/lexer";
+import { Tokens, Lex, TokenType } from "./types/lexer";
+import * as AST from "./types/ast";
+import * as Lexer from "./types/lexer";
 import { DQLSyntaxError, DQLReferenceError } from "./Exceptions";
 
 export default class DQLParser {
