@@ -1,5 +1,6 @@
 import { Tokens, Lex, TokenType } from "../types/lexer";
 import * as AST from "../types/ast";
+import * as Lexer from "../types/lexer";
 import { DQLSyntaxError, DQLReferenceError } from "./Exceptions";
 
 export default class DQLParser {
@@ -16,6 +17,18 @@ export default class DQLParser {
       type: "Program", // TODO: determine where the evaluater is run from
       body: [],
     };
+  }
+
+  private findToken(line: number, t: TokenType): Lexer.Token | undefined {
+    for (let i = line - 1; i < this.lexedInput.length - 1; i++) {
+      for (let j = 0; j < this.lexedInput[i][1].length; j++) {
+        if (this.lexedInput[i][1][j].tokenType === t) {
+          return this.lexedInput[i][1][j]
+        }
+      }
+    }
+
+    return undefined;
   }
 
   parse(): AST.ASTDocument {
@@ -83,38 +96,26 @@ export default class DQLParser {
             break;
           }
           case Tokens.FETCH: //  fetch a URL_LITERAL
-            if (
-              lexedLine[j+1]?.tokenType !== TokenType.URL_LITERAL &&
-              lexedLine[j+1]?.tokenType !== TokenType.IDENTIFIER
-            ) {
-              throw new DQLSyntaxError(
-                `FETCH expects a URL_LITERAL got invalid ${
-                  lexedLine[j + 1]?.tokenType ?? "none"
-                }`,
-                line,
-                lexedLine[j].end + 2
-              );
+            let foundUrl = this.findToken(i, TokenType.URL_LITERAL);
+            let foundVar = this.findToken(i, TokenType.IDENTIFIER);
+
+            if (!foundUrl || !foundVar) {
+              throw new DQLSyntaxError("FETCH expected to find a valid identifier or URL, found none", i, lexedLine[j].begin);
             }
+            if (!this.ENS[foundVar.word]) throw new DQLReferenceError(`unable to find variable ${lexedLine[j + 1]?.word ?? ""}`)
+            let targetUrl = this.ENS[foundVar.word];
 
-            let targetUrl;
-            if (lexedLine[j+1].tokenType === TokenType.IDENTIFIER) {
-              if (!this.ENS[lexedLine[j + 1].word]) throw new DQLReferenceError(`unable to find variable ${lexedLine[j + 1]?.word ?? ""}`)
-              targetUrl = this.ENS[lexedLine[j + 1].word].value;
-            }
-
-            targetUrl = lexedLine[j+1].word;
-
-          
             let fetchExpr: AST.FetchExpression = {
               type: "FetchExpression",
-              url: targetUrl, 
+              url: foundUrl?.word ?? targetUrl, 
               format: null,
+              meta: {},
               location: {
                 row: i + 1,
                 col: lexedLine[j].begin,
               },
             };
-            // TODO: to check this or to not check this?
+
             if (tail && tail?.type === "VarDeclaration") {
               let target = this.AST.body[
                 this.AST.body.length - 1
@@ -124,6 +125,84 @@ export default class DQLParser {
             }
             this.AST.body.push(fetchExpr);
             break;
+
+          case Tokens.METHOD: {
+            if (
+              !tail || tail?.type !== "VarDeclaration"
+            ) {
+              if (tail?.value?.type !== "FetchExpression") throw new DQLSyntaxError("METHOD expected a valid FETCH expression", i, lexedLine[j].begin);
+            }
+
+            if (lexedLine[j+1].tokenType !== TokenType.STRING_LITERAL) throw new DQLSyntaxError(`METHOD expected a string literal got ${lexedLine[j+1]?.tokenType ?? "none"}`, i, lexedLine[j].begin);
+            let target = this.AST.body[
+              this.AST.body.length - 1
+            ] as AST.VarDeclaration;
+            let targetFetchExpr = target.value as AST.FetchExpression
+
+            targetFetchExpr.meta = {
+              ...targetFetchExpr.meta,
+              method: lexedLine[j+1].word,
+            };
+            break;
+          }
+
+          case Tokens.HEADER: {
+            if (
+              !tail || tail?.type !== "VarDeclaration"
+            ) {
+              if (tail?.value?.type !== "FetchExpression") throw new DQLSyntaxError("HEADER expected a valid FETCH expression", i, lexedLine[j].begin);
+            }
+
+            let headersKp = lexedLine[j+1].word.split(':').map(e => e?.trim());
+            if (lexedLine[j+1]?.tokenType !== TokenType.STRING_LITERAL) throw new DQLSyntaxError(`HEADER expected a string literal got ${lexedLine[j+1]?.tokenType ?? "none"}`, i, lexedLine[j].begin);
+            if (headersKp.length !== 2) throw new DQLSyntaxError(`invalid HEADER format ${lexedLine[j+1].word}`, i, lexedLine[j].begin);
+
+            let target = this.AST.body[
+              this.AST.body.length - 1
+            ] as AST.VarDeclaration;
+
+            let targetFetchExpr = target.value as AST.FetchExpression
+
+            let headers = {
+              ...(targetFetchExpr?.meta?.headers ?? {})
+            }
+            headers[headersKp[0]] = headersKp[1];
+            targetFetchExpr.meta = {
+              ...targetFetchExpr.meta,
+              headers,
+            };
+            break;
+          }
+
+          case Tokens.BODY: {
+            if (
+              !tail || tail?.type !== "VarDeclaration"
+            ) {
+              if (tail?.value?.type !== "FetchExpression") throw new DQLSyntaxError("BODY expected a valid FETCH expression", i, lexedLine[j].begin);
+            }
+
+            let bodyType = lexedLine[j+1];
+            let bodyData = lexedLine[j+2];
+
+            if (bodyData?.tokenType !== TokenType.STRING_LITERAL) throw new DQLSyntaxError(`BODY expected a valid data as string literal got ${bodyData?.tokenType ?? "none"}`, i, lexedLine[j].begin);
+
+            let vals: Array<string> = Object.values(AST.BodyType)
+            if (!vals.includes(bodyType.word)) throw new DQLSyntaxError(`BODY expected a valid data type got ${bodyType?.tokenType ?? "none"}`, i, lexedLine[j].begin);
+
+            let target = this.AST.body[
+              this.AST.body.length - 1
+            ] as AST.VarDeclaration;
+
+            let targetFetchExpr = target.value as AST.FetchExpression
+            targetFetchExpr.meta = {
+              ...targetFetchExpr.meta,
+              body: {
+                type: AST.BodyType[bodyType.word as keyof typeof AST.BodyType],
+                value: bodyData.word,
+              }
+            };
+            break;
+          }
           case Tokens.AS: {
             // cast the expression on LHS as a specific data type
             let dataTypes: Array<string> = Object.values(AST.DataType);

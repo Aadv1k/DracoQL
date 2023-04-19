@@ -1,6 +1,6 @@
 import { TokenType, Token, Tokens, Lex } from "../types/lexer";
 import { DQLSyntaxError } from "./Exceptions";
-import { isURL } from "../lib/utils";
+import { isURL, isLowerCase } from "../lib/utils";
 
 export default class DQLLexer {
   private input: string;
@@ -41,6 +41,26 @@ export default class DQLLexer {
         this.stack.push(obj)
         break;
       case Tokens.FETCH: 
+        obj.tokenType = TokenType.KEYWORD;
+        this.stack.push(obj)
+        break;
+      case Tokens.HEADER: 
+        obj.tokenType = TokenType.KEYWORD;
+        this.stack.push(obj)
+        break;
+      case Tokens.METHOD: 
+        obj.tokenType = TokenType.KEYWORD;
+        this.stack.push(obj)
+        break;
+      case Tokens.BODY: 
+        obj.tokenType = TokenType.KEYWORD;
+        this.stack.push(obj)
+        break;
+      case Tokens.FORM: 
+        obj.tokenType = TokenType.KEYWORD;
+        this.stack.push(obj)
+        break;
+      case Tokens.HEADER: 
         obj.tokenType = TokenType.KEYWORD;
         this.stack.push(obj)
         break;
@@ -93,12 +113,9 @@ export default class DQLLexer {
         if (token.trim().length < 1) break;
 
         if (
-          (
-            (this.stack[this.stack.length - 1]?.word === "VAR" ||
-            this.stack[this.stack.length - 1]?.word === "PIPE" ||
-            this.stack[this.stack.length - 1]?.word === "FETCH")
+            isLowerCase(obj.word)
             && !isStr
-          ) && !isURL(obj.word)
+           && !isURL(obj.word)
         ) {
           obj.tokenType = TokenType.IDENTIFIER;
           this.stack.push(obj)
@@ -130,6 +147,7 @@ export default class DQLLexer {
   lexLine(line: string): Array<Token> {
     let stack = "";
     let open = false;
+    let singleOpen = false;
     let quotes = "";
 
     if (line.startsWith('//')) return [];
@@ -137,28 +155,39 @@ export default class DQLLexer {
     while (!this.end) {
       let cur = this.advance(line);
 
-      /*
-      // INFO: This breaks our current URL implementation
-      if (cur === "/" && line[this.cursor + 1 ] === '/') {
-        let local = this.stack;
-        this.stack = [];
-        return local;
+      if (
+        cur === "'" && !singleOpen) {
+        singleOpen = true;
+        continue;
       }
-*/
 
-      if (cur === "\"" && !open) {
+
+      if (
+        cur === "\"" && !open && !singleOpen) {
         open = true;
         continue;
       }
 
-      if (cur === "\"" && open) {
+      if (
+        cur === "'" && singleOpen) {
+        this.handleToken(quotes, true);
+        singleOpen = false;
+        continue;
+      }
+
+      if (cur === "\"" && open && !singleOpen) {
         this.handleToken(quotes, true);
         quotes = "";
         open = false;
         continue;
       }
 
-      if (open) {
+      if (open && !singleOpen) {
+        quotes += cur;
+        continue;
+      }
+
+      if (singleOpen) {
         quotes += cur;
         continue;
       }
@@ -171,7 +200,7 @@ export default class DQLLexer {
       stack += cur;
     }
 
-    if (open) {
+    if (open || singleOpen) {
       throw new DQLSyntaxError("string literal must be terminated");
     }
 

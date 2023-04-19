@@ -38,6 +38,13 @@ export interface PipeSource {
   value: string,
 }
 
+export enum BodyType {
+  JSON = 'JSON',
+  TEXT = 'TEXT',
+  FILE = 'FILE',
+  FORM = "FORM",
+}
+
 export enum DataType {
   JSON = 'JSON',
   TEXT = 'TEXT',
@@ -49,6 +56,13 @@ export enum DataType {
 export interface FetchExpression {
   type: "FetchExpression",
   url: string,
+  meta?: {
+    method?: string,
+    headers?: {
+      [key: string]: string,
+    }
+    body?: GeneralType
+  } | null,
   format: DataType | null,
   location: Location,
 }

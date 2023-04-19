@@ -2,11 +2,19 @@ import DQLLexer from "./Lexer";
 import MQLParser from "./Parser";
 import DQLInterpreter from "./Interpreter";
 
+/*
+ *
+*/
 
 let str = `
-VAR data = FETCH https://jsonplaceholder.typicode.com/users/1 AS JSON
-PIPE data TO FILE "hello.txt"
+VAR url = https://ap-quillia.up.railway.app/api/login
+VAR data = FETCH 
+  METHOD "POST" 
+  BODY TEXT '{"hello": "world"}'
+  url
+  AS JSON
 
+PIPE data TO STDOUT
 `; 
 
 (async () => {

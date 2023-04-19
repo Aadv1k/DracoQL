@@ -1,9 +1,9 @@
 import * as Lexer from "../types/lexer";
 import * as AST from "../types/ast";
-import fetchBuffer from "../lib/fetch";
+import { GET, POST } from "../lib/fetch";
 import fs from "node:fs";
 import path from "node:path";
-import { DQLSyntaxError, DQLNetworkError, DQLReferenceError } from "./Exceptions";
+import { DQLSyntaxError, DQLNetworkError, DQLReferenceError, DQLMissingBody } from "./Exceptions";
 
 const ERR_EXIT_CODE = 1;
 
@@ -19,9 +19,19 @@ export default class DQLInterpreter {
   }
 
   async evalFetch(node: AST.FetchExpression, orNode?: AST.OrExpression): Promise<string> {
-    let response: Array<Buffer> = await fetchBuffer(node.url).catch((_) => {
-      throw new DQLNetworkError("unable to parse FETCH expression");
-    });
+    let response: Array<Buffer>; 
+
+    if (node?.meta?.method === "POST") {
+      if (!node.meta?.body?.value) throw new DQLMissingBody("FETCH with POST expected a BODY, found none", node.location.row, node.location.col);
+      response = await POST(node.url, node.meta.body.value, node.meta?.headers).catch((_a: string) => {
+        throw new DQLNetworkError("unable to parse FETCH expression");
+      });
+    } else {
+      response = await GET(node.url).catch((_a: string) => {
+        throw new DQLNetworkError("unable to parse FETCH expression");
+      });
+    }
+
 
     let data = response.toString();
     let ret: any;
