@@ -111,14 +111,14 @@ PIPE headline TO STDOUT
 ### Fetch data and log it to the console
 
 ```cql
-VAR data = FETCH https://www.cs.cmu.edu/afs/cs/project/ai-repository/ai/areas/nlp/corpora/names/male.txt
+VAR data = FETCH "https://www.cs.cmu.edu/afs/cs/project/ai-repository/ai/areas/nlp/corpora/names/male.txt"
 PIPE title TO STDOUT
 ```
 
 ### Fetch data and put it to file
 
 ```cql
-VAR data = FETCH https://jsonplaceholder.typicode.com/users/1 
+VAR data = FETCH "https://jsonplaceholder.typicode.com/users/1"
   AS JSON 
   OR DIE 
 
@@ -131,7 +131,7 @@ PIPE data TO FILE "user.json"
 VAR data = FETCH https://www.cnet.com/
 
 VAR headline = EXTRACT 
-  .c-pageHomeHightlights>div:nth-child(1)>div:nth-child(2)>div:nth-child(1)>a:nth-child(1)>div:nth-child(1)>div:nth-child(2)>div:nth-child(1)>h3:nth-child(1)>span:nth-child(1) 
+  ".c-pageHomeHightlights>div:nth-child(1)>div:nth-child(2)>div:nth-child(1)>a:nth-child(1)>div:nth-child(1)>div:nth-child(2)>div:nth-child(1)>h3:nth-child(1)>span:nth-child(1)"
   FROM data 
   AS HTML
 
