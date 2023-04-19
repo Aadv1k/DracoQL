@@ -54,15 +54,22 @@ export default class DQLInterpreter {
     }
 
     let data = response.toString();
-    let ret: any;
-    let typ: string;
+    let ret: {
+      type: string,
+      value: string,
+    } = {
+      type: "",
+      value:  "",
+    };
 
     if (node.format === AST.DataType.JSON) {
       try {
         // TODO: figure out how to store stuff as JSON
         JSON.parse(data);
-        ret = data;
-        typ = "JSON";
+
+        ret.type = "JSON";
+        ret.value = data;
+
       } catch (SyntaxError) {
         switch (orNode?.handler) {
           case AST.OrType.EXIT:
@@ -74,42 +81,47 @@ export default class DQLInterpreter {
           "received invalid JSON while parsing FETCH expression"
         );
       }
+    } else if (node.format === AST.DataType.HTML) {
+      ret.type = "HTML";
+      ret.value = data;
     } else {
-      (typ = "HTML"), (ret = data);
+      throw new DQLSyntaxError("need to specify the type for FETCH format", node.location.row, node.location.col);
     }
 
-    return {
-      type: typ,
-      value: ret,
-    };
+    return ret;
   }
 
   evalExtract(
     node: AST.ExtractExpression,
     nextNode?: AST.OrExpression
   ): AST.GeneralType {
-    let frm = node.from;
-    let target = node.what;
 
-    let ret: AST.GeneralType = {
+    let ret: {
+      type: string,
+      value: string,
+    } = {
       type: "",
       value: "",
     };
 
-    if (frm?.type === "IDENTIFIER") {
-      if (!this.NS[frm?.value])
+    if (!node?.format) {
+      throw new DQLSyntaxError("EXTRACT needs a valid data type", node.location.row, node.location.col);
+    }
+
+    if (node?.from?.type === "IDENTIFIER") {
+      if (!this.NS[node?.from?.value])
         throw new DQLReferenceError(
-          `was unable to find variable ${frm?.value}`,
+          `was unable to find variable ${node?.from?.value}`,
           node.location.row,
           node.location.col
         );
-      frm.value = this.NS[frm?.value]?.value as string;
+      node.from.value = this.NS[node.from?.value]?.value as string;
     }
 
-    if (node?.format === AST.DataType.JSON) {
+    if (node.format === AST.DataType.JSON) {
       let val;
       try {
-        val = JSON.parse(frm?.value ?? "");
+        val = JSON.parse(node?.from?.value ?? "");
       } catch (SyntaxError) {
         throw new DQLSyntaxError(
           "invalid JSON format",
@@ -120,10 +132,10 @@ export default class DQLInterpreter {
 
       let query;
       try {
-        query = eval(`val.${target}`);
+        query = eval(`val.${node?.what ?? ""}`);
       } catch {
         throw new DQLSyntaxError(
-          `invalid JSON query ${target}`,
+          `invalid JSON query ${node.what}`,
           node.location.row,
           node.location.col
         );
@@ -131,7 +143,7 @@ export default class DQLInterpreter {
 
       if (!query) {
         throw new DQLSyntaxError(
-          `was unable to parse ${val?.[target]} from JSON`,
+          `was unable to parse ${val?.[node.what]} from JSON`,
           node.location.row,
           node.location.col
         );
@@ -139,9 +151,9 @@ export default class DQLInterpreter {
       ret.type = "STRING_LITERAL";
       ret.value = query;
     }
-    if (node?.format === AST.DataType.HTML) {
-      let parsed = HTML.parse(frm?.value ?? "");
-      let t = parsed.querySelector(target);
+    if (node.format === AST.DataType.HTML) {
+      let parsed = HTML.parse(node.from?.value ?? "");
+      let t = parsed.querySelector(node.what);
 
       ret.value = JSON.stringify({
         ...t?.attributes,
@@ -149,7 +161,6 @@ export default class DQLInterpreter {
       });
       ret.type = "JSON";
     }
-
     return ret;
   }
 
@@ -188,13 +199,15 @@ export default class DQLInterpreter {
           node = node as AST.VarDeclaration;
 
           if (node.value?.type === "FetchExpression") {
-            this.NS[node.identifier] = await this.evalFetch(
+             let fetchedData = await this.evalFetch(
               node.value as AST.FetchExpression,
               nextNode?.type === "OrExpression"
                 ? (nextNode as AST.OrExpression)
                 : undefined
             );
+            this.NS[node.identifier] = fetchedData;
             break;
+
           } else if (node.value?.type === "ExtractExpression") {
             this.NS[node.identifier] = this.evalExtract(
               node.value as AST.ExtractExpression,

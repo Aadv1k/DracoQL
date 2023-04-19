@@ -137,7 +137,6 @@ export default class DQLParser {
               target.value = fetchExpr;
               break;
             }
-
             this.AST.body.push(fetchExpr);
             break;
           case Tokens.METHOD: {
@@ -279,13 +278,15 @@ export default class DQLParser {
               },
             };
 
-            if (tail && tail?.type === "VarDeclaration") {
+            if (tail && tail?.type === "VarDeclaration" && Object.keys(tail?.value ?? {}).length === 0) {
               let target = this.AST.body[
                 this.AST.body.length - 1
               ] as AST.VarDeclaration;
               target.value = extractExpr;
+
               break;
             }
+
 
             this.AST.body.push(extractExpr);
             break;

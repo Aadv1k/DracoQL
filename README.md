@@ -1,8 +1,12 @@
 # DracoQL 🐉
 
+![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=&logo=typescript&logoColor=white)
+[![NPM](https://badge.fury.io/js/dracoql.svg)](https://npm.im/dracoql)
+
+
 DracoQL is a an embeddable query language for processing and transforming data from the web resources and writing it to files and databases.
 
-**Language actively in development, please report any bugs under issues.**
+**Language actively in development, please report any bugs under [issues](https://github.com/aadv1k/dracoql/issues).**
 
 ## Get
 
@@ -49,7 +53,7 @@ PIPE data TO FILE "user.json"
 
 ### Scrape data from a website 
 
-```
+```cql
 VAR data = FETCH https://www.cnet.com/
 
 VAR headline = EXTRACT 
