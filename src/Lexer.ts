@@ -116,6 +116,7 @@ export default class DQLLexer {
             isLowerCase(obj.word)
             && !isStr
            && !isURL(obj.word)
+          && !Number(obj.word)
         ) {
           obj.tokenType = TokenType.IDENTIFIER;
           this.stack.push(obj)

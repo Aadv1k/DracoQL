@@ -7,14 +7,13 @@ import DQLInterpreter from "./Interpreter";
 */
 
 let str = `
-VAR url = https://ap-quillia.up.railway.app/api/login
+VAR url = https://ap-.up.railway.app/api/login
 VAR data = FETCH 
   METHOD "POST" 
   BODY TEXT '{"hello": "world"}'
-  url
+  https://ap-quillia.up.railway.app/api/login
   AS JSON
-
-PIPE data TO STDOUT
+  OR EXIT 69
 `; 
 
 (async () => {

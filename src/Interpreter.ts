@@ -39,6 +39,7 @@ export default class DQLInterpreter {
     if (node.format === AST.DataType.JSON) {
       try {
         // TODO: figure out how to store stuff as JSON
+        JSON.parse(data);
         ret = data;
       } catch (SyntaxError) {
         switch (orNode?.handler) {
@@ -87,7 +88,7 @@ export default class DQLInterpreter {
           if (node.value?.type === "FetchExpression") {
             this.NS[node.identifier] = await this.evalFetch(
               node.value as AST.FetchExpression,
-              nextNode.type === "OrExpression" ? nextNode as AST.OrExpression : undefined
+              nextNode?.type === "OrExpression" ? nextNode as AST.OrExpression : undefined
             );
             break;
           } 
