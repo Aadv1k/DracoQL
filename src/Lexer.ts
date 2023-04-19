@@ -44,6 +44,14 @@ export default class DQLLexer {
         obj.tokenType = TokenType.KEYWORD;
         this.stack.push(obj)
         break;
+      case Tokens.EXTRACT: 
+        obj.tokenType = TokenType.KEYWORD;
+        this.stack.push(obj)
+        break;
+      case Tokens.FROM: 
+        obj.tokenType = TokenType.KEYWORD;
+        this.stack.push(obj)
+        break;
       case Tokens.HEADER: 
         obj.tokenType = TokenType.KEYWORD;
         this.stack.push(obj)
@@ -69,6 +77,10 @@ export default class DQLLexer {
         this.stack.push(obj)
         break;
       case Tokens.JSON: 
+        obj.tokenType = TokenType.KEYWORD;
+        this.stack.push(obj)
+        break;
+      case Tokens.HTML: 
         obj.tokenType = TokenType.KEYWORD;
         this.stack.push(obj)
         break;
@@ -112,11 +124,17 @@ export default class DQLLexer {
       default: 
         if (token.trim().length < 1) break;
 
-        if (
+        if  (this.stack[this.stack.length - 1]?.word === "EXTRACT")  {
+          obj.tokenType = TokenType.QUERY_LITERAL;
+          this.stack.push(obj)
+          break;
+        }
+
+       if (
             isLowerCase(obj.word)
             && !isStr
-           && !isURL(obj.word)
-          && !Number(obj.word)
+            && !isURL(obj.word)
+            && !Number(obj.word)
         ) {
           obj.tokenType = TokenType.IDENTIFIER;
           this.stack.push(obj)

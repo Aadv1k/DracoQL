@@ -10,7 +10,10 @@ const ERR_EXIT_CODE = 1;
 export default class DQLInterpreter {
   ASTDocument: AST.ASTDocument;
   NS: {
-    [key: string]: string | null,
+    [key: string]: {
+      type: string,
+      value: string,
+    } | null,
   };
 
   constructor(ASTDocument: AST.ASTDocument) {
@@ -18,7 +21,7 @@ export default class DQLInterpreter {
     this.NS = {};
   }
 
-  async evalFetch(node: AST.FetchExpression, orNode?: AST.OrExpression): Promise<string> {
+  async evalFetch(node: AST.FetchExpression, orNode?: AST.OrExpression): Promise<AST.GeneralType> {
     let response: Array<Buffer>; 
 
     if (node?.meta?.method === "POST") {
@@ -32,15 +35,16 @@ export default class DQLInterpreter {
       });
     }
 
-
     let data = response.toString();
     let ret: any;
+    let typ: string;
 
     if (node.format === AST.DataType.JSON) {
       try {
         // TODO: figure out how to store stuff as JSON
         JSON.parse(data);
         ret = data;
+        typ = "JSON";
       } catch (SyntaxError) {
         switch (orNode?.handler) {
           case AST.OrType.EXIT: 
@@ -53,8 +57,51 @@ export default class DQLInterpreter {
         );
       }
     } else {
+      typ = "HTML",
       ret = data;
     }
+
+    return {
+      type: typ,
+      value: ret
+    };
+  }
+
+  evalExtract(node: AST.ExtractExpression, nextNode?: AST.OrExpression): AST.GeneralType {
+    let frm = node.from;
+    let target = node.what;
+
+    let ret: AST.GeneralType = {
+      type: "",
+      value: "",
+    };
+
+    if (frm?.type === "IDENTIFIER") {
+      if (!this.NS[frm?.value]) throw new DQLReferenceError(`was unable to find variable ${frm?.value}`, node.location.row, node.location.col);
+      frm.value = this.NS[frm?.value]?.value as string;
+    }
+
+
+    if (node?.format === AST.DataType.JSON) {
+      let val;
+      try {
+        val = JSON.parse(frm?.value ?? "");
+      } catch (SyntaxError) {
+        throw new DQLSyntaxError("invalid JSON format", node.location.row, node.location.col);
+      }
+
+      let query
+      try {
+        query = eval(`val.${target}`);
+      } catch  {
+        throw new DQLSyntaxError(`invalid JSON query ${target}`, node.location.row, node.location.col);
+      }
+
+      if (!query) { throw new DQLSyntaxError(`was unable to parse ${val?.[target]} from JSON`, node.location.row, node.location.col) }
+      ret.type = "STRING_LITERAL";
+      ret.value = query;
+    }
+
     return ret;
   }
 
@@ -66,7 +113,7 @@ export default class DQLInterpreter {
     } else if (node.source.type ===  Lexer.TokenType.IDENTIFIER) {
       let foundVar = this.NS?.[node.source.value];
       if (!foundVar) throw new DQLReferenceError(`was unable to find variable '${node.source.value}'`);
-      src = foundVar;
+      src = foundVar.value;
     }
 
     if (node.destination.type === AST.DestType.STDOUT) {
@@ -85,15 +132,27 @@ export default class DQLInterpreter {
         case "VarDeclaration": {
           this.NS[node.identifier] = null;
           node = node as AST.VarDeclaration;
+
           if (node.value?.type === "FetchExpression") {
             this.NS[node.identifier] = await this.evalFetch(
               node.value as AST.FetchExpression,
               nextNode?.type === "OrExpression" ? nextNode as AST.OrExpression : undefined
             );
             break;
-          } 
+          }  else if (node.value?.type === "ExtractExpression") {
+            this.NS[node.identifier] = this.evalExtract(
+              node.value as AST.ExtractExpression,
+              nextNode?.type === "OrExpression" ? nextNode as AST.OrExpression : undefined
+            );
+            break;
+          }
+
+
           let target = node.value as AST.GeneralType;
-          this.NS[node.identifier] = target.value;
+          this.NS[node.identifier] = { 
+            type: target.type,
+            value: target.value,
+          };
           break;
         } 
         case "PipeExpression": {

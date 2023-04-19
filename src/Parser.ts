@@ -19,9 +19,9 @@ export default class DQLParser {
     };
   }
 
-  private findToken(line: number, t: TokenType): Lexer.Token | undefined {
+  private findToken(line: number, t: TokenType, start?: number): Lexer.Token | undefined {
     for (let i = line - 1; i < this.lexedInput.length - 1; i++) {
-      for (let j = 0; j < this.lexedInput[i][1].length; j++) {
+      for (let j = start ?? 0; j < this.lexedInput[i][1].length; j++) {
         if (this.lexedInput[i][1][j].tokenType === t) {
           return this.lexedInput[i][1][j]
         }
@@ -96,18 +96,22 @@ export default class DQLParser {
             break;
           }
           case Tokens.FETCH: //  fetch a URL_LITERAL
-            let foundUrl = this.findToken(i, TokenType.URL_LITERAL);
-            let foundVar = this.findToken(i, TokenType.IDENTIFIER);
-
-            if (!foundUrl || !foundVar) {
+            if (!lexedLine[j+1]) {
               throw new DQLSyntaxError("FETCH expected to find a valid identifier or URL, found none", i, lexedLine[j].begin);
             }
-            if (!this.ENS[foundVar.word]) throw new DQLReferenceError(`unable to find variable ${lexedLine[j + 1]?.word ?? ""}`)
-            let targetUrl = this.ENS[foundVar.word];
+
+            let targetUrl;
+
+            if (lexedLine[j+1].tokenType === TokenType.IDENTIFIER) {
+              if (!this.ENS[lexedLine[j+1].word]) throw new DQLReferenceError(`unable to find variable ${lexedLine[j+1]?.word ?? ""}`)
+              targetUrl = this.ENS[lexedLine[j+1].word];
+            } else if (lexedLine[j+1].tokenType === TokenType.URL_LITERAL) {
+              targetUrl = lexedLine[j+1].word;
+            }
 
             let fetchExpr: AST.FetchExpression = {
               type: "FetchExpression",
-              url: foundUrl?.word ?? targetUrl, 
+              url: targetUrl,
               format: null,
               meta: {},
               location: {
@@ -125,7 +129,6 @@ export default class DQLParser {
             }
             this.AST.body.push(fetchExpr);
             break;
-
           case Tokens.METHOD: {
             if (
               !tail || tail?.type !== "VarDeclaration"
@@ -203,6 +206,75 @@ export default class DQLParser {
             };
             break;
           }
+          
+          case Tokens.EXTRACT:  {
+            if (!lexedLine[j+1] || lexedLine[j+1].tokenType !== TokenType.QUERY_LITERAL) { 
+              throw new DQLSyntaxError("EXTRACT expects a query literal, got something else", i, lexedLine[j].end);
+            }
+
+            const extractExpr: AST.ExtractExpression = {
+              type: "ExtractExpression",
+              from: null,
+              what: lexedLine[j+1].word,
+              location: {
+                row: i, 
+                col: lexedLine[j].begin
+              }
+            }
+
+            if (tail && tail?.type === "VarDeclaration") {
+              let target = this.AST.body[
+                this.AST.body.length - 1
+              ] as AST.VarDeclaration;
+              target.value = extractExpr;
+              break;
+            }
+
+            this.AST.body.push(extractExpr);
+            break;
+          }
+          case Tokens.FROM: {
+            if (!lexedLine[j + 1] ||
+              (lexedLine[j+1]?.tokenType !== TokenType.STRING_LITERAL 
+                &&
+              lexedLine[j+1]?.tokenType !== TokenType.IDENTIFIER)
+            ) {
+              throw new DQLSyntaxError(
+                `FROM expects a valid extraction type got ${
+                  lexedLine[j + 1]?.tokenType ?? "none"
+                }`,
+                line,
+                lexedLine[j].end + 2
+              );
+            }
+
+            if (tail?.type !== "VarDeclaration" && tail?.type !== "ExtractExpression") {
+              throw new DQLSyntaxError("FROM expects a valid VAR or EXTRACT expression", i, lexedLine[j].end)
+            }
+
+            if (tail && tail?.type === "VarDeclaration") {
+              let target = this.AST.body[
+                this.AST.body.length - 1
+              ] as AST.VarDeclaration;
+              let t = target.value as AST.ExtractExpression;
+              t.from = {
+                type: lexedLine[j+1].tokenType, // TODO this may change
+                value: lexedLine[j+1].word
+              };
+              break;
+            }
+
+            let target = this.AST.body[
+              this.AST.body.length - 1
+            ] as AST.ExtractExpression;
+
+            target.from = {
+              type: lexedLine[j+1].tokenType, // TODO this may change
+              value: lexedLine[j+1].word
+            }
+            break;
+          }
+
           case Tokens.AS: {
             // cast the expression on LHS as a specific data type
             let dataTypes: Array<string> = Object.values(AST.DataType);
@@ -217,7 +289,10 @@ export default class DQLParser {
               );
             }
 
-            if (tail?.value?.type !== "FetchExpression") {
+            if (
+              tail?.value?.type !== "FetchExpression" &&
+              tail?.value?.type !== "ExtractExpression"
+            ) {
               throw new DQLSyntaxError(
                 `AS needs a valid expression to cast`,
                 line,

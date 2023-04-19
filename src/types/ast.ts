@@ -15,6 +15,7 @@ export type ASTNode =
   | PipeExpression
   | OrExpression
   | ExternExpression
+  | ExtractExpression
 
 export type ExternExpression = {
   type: string,
@@ -48,6 +49,7 @@ export enum BodyType {
 export enum DataType {
   JSON = 'JSON',
   TEXT = 'TEXT',
+  HTML = 'HTML',
   BUFFER = 'BUFFER',
   FILE = 'FILE',
   NULL = "NULL",
@@ -86,8 +88,16 @@ export interface GeneralType {
 export interface VarDeclaration {
   type: "VarDeclaration",
   identifier: string,
-  value: FetchExpression | GeneralType | null,
+  value: FetchExpression | GeneralType | ExtractExpression | null,
   location: Location,
+}
+
+export interface ExtractExpression {
+  type: "ExtractExpression",
+  from: GeneralType | null,
+  what: string,
+  location: Location,
+  format?: DataType,
 }
 
 export interface PipeExpression {

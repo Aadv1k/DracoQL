@@ -5,6 +5,7 @@ export enum TokenType {
   STRING_LITERAL = "STRING_LITERAL",
   URL_LITERAL = "URL_LITERAL",
   INT_LITERAL = "INT_LITERAL",
+  QUERY_LITERAL = "QUERY_LITERAL",
   NULL = "NULL",
 }
 
@@ -27,9 +28,12 @@ export enum Tokens {
   FETCH = "FETCH",
   METHOD = "METHOD",
   HEADER = "HEADER",
+  EXTRACT = "EXTRACT",
+  FROM = "FROM",
   BODY = "BODY",
   TEXT = "TEXT",
   JSON = "JSON",
+  HTML = "HTML",
   FILE = "FILE",
   FORM = "FORM",
   AS = "AS",
