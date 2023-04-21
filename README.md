@@ -8,7 +8,7 @@ DracoQL is a an embeddable query language for processing and transforming data f
 
 **Language actively in development, please report any bugs under [issues](https://github.com/aadv1k/dracoql/issues).**
 
-- [Get](#get)
+- [Install](#install)
 - [Usage](#usage)
 - [Tutorial](#syntax)
   - [Variables](#variables)
@@ -19,7 +19,7 @@ DracoQL is a an embeddable query language for processing and transforming data f
 - [API reference](#api)
 
 
-## Get
+## Install
 
 ```shell
 npm install dracoql
