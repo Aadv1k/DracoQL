@@ -8,7 +8,7 @@ export async function GET(target: string, headers?: any): Promise<Array<Buffer>>
     (url.protocol === "http:" ? http : https)
       .get({
         hostname: url.hostname,
-        path: url.href,
+        path: url.pathname,
         headers,
       }, (res) => {
       let data: Array<Buffer> = [];

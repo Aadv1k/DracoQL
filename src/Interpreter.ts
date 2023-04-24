@@ -69,7 +69,6 @@ export default class DQLInterpreter {
 
         ret.type = "JSON";
         ret.value = data;
-
       } catch (SyntaxError) {
         switch (orNode?.handler) {
           case AST.OrType.EXIT:
@@ -85,7 +84,7 @@ export default class DQLInterpreter {
       ret.type = "HTML";
       ret.value = data;
     } else if (node.format === AST.DataType.TEXT) {
-      ret.type = "HTML";
+      ret.type = "TEXT";
       ret.value = data;
     } else {
       throw new DQLSyntaxError("need to specify the type for FETCH format", node.location.row, node.location.col);
