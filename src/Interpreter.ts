@@ -48,7 +48,7 @@ export default class DQLInterpreter {
         throw new DQLNetworkError("unable to parse FETCH expression");
       });
     } else {
-      response = await GET(node.url).catch((_a: string) => {
+      response = await GET(node.url, node.meta?.headers).catch((_a: string) => {
         throw new DQLNetworkError("unable to parse FETCH expression");
       });
     }
@@ -82,6 +82,9 @@ export default class DQLInterpreter {
         );
       }
     } else if (node.format === AST.DataType.HTML) {
+      ret.type = "HTML";
+      ret.value = data;
+    } else if (node.format === AST.DataType.TEXT) {
       ret.type = "HTML";
       ret.value = data;
     } else {

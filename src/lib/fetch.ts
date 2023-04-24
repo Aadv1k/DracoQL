@@ -2,20 +2,25 @@ import http from "node:http";
 import https from "node:https";
 import { URL } from "node:url";
 
-export function GET(target: string): Promise<Array<Buffer>> {
-  const url = new URL(target);
+export async function GET(target: string, headers?: any): Promise<Array<Buffer>> {
   return new Promise((resolve, reject) => {
+    const url = new URL(target);
     (url.protocol === "http:" ? http : https)
-      .get(url.href, (res) => {
+      .get({
+        hostname: url.hostname,
+        path: url.href,
+        headers,
+      }, (res) => {
       let data: Array<Buffer> = [];
-      res.on("data", (d: Buffer) => data.push(d));
+      res.on("data", (d: Buffer) => { data.push(d) });
       res.on("end", () => resolve(data));
       res.on("error", (error) => reject(error));
     })
+    .on("error", e => reject(e));
   })
 }
 
-export function POST(target: string, data: string, headers?: any): Promise<Array<Buffer>> {
+export async function POST(target: string, data: string, headers?: any): Promise<Array<Buffer>> {
   const url = new URL(target);
 
   const options = {

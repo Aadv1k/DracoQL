@@ -182,6 +182,7 @@ export default class DQLParser {
             let headersKp = lexedLine[j + 1].word
               .split(":")
               .map((e) => e?.trim());
+
             if (lexedLine[j + 1]?.tokenType !== TokenType.STRING_LITERAL)
               throw new DQLSyntaxError(
                 `HEADER expected a string literal got ${
@@ -368,6 +369,7 @@ export default class DQLParser {
             let target = this.AST.body[
               this.AST.body.length - 1
             ] as AST.VarDeclaration;
+
             let fetchTarget = target.value as AST.FetchExpression;
             fetchTarget.format =
               AST.DataType[fetchFormat as keyof typeof AST.DataType];
