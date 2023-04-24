@@ -6,6 +6,7 @@ export class DQLSyntaxError extends Error {
       }: ${message}`
     );
     this.name = "DQLSyntaxError";
+    this.message = message;
     this.stack = "";
   }
 }
@@ -18,6 +19,7 @@ export class DQLReferenceError extends Error {
       }: ${message}`
     );
     this.name = "DQLReferenceError";
+    this.message = message;
     this.stack = "";
   }
 }
@@ -30,6 +32,7 @@ export class DQLMissingBody extends Error {
       }: ${message}`
     );
     this.name = "DQLMissingBody";
+    this.message = message;
     this.stack = "";
   }
 }
@@ -42,6 +45,7 @@ export class DQLNetworkError extends Error {
       }: ${message}`
     );
     this.name = "DQLNetworkError";
+    this.message = message;
     this.stack = "";
   }
 }

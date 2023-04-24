@@ -1,5 +1,5 @@
-import eval from './Eval';
-import interpreter from './Interpreter';
+import eval from "./Eval";
+import interpreter from "./Interpreter";
 import parser from "./Parser";
 import lexer from "./Lexer";
 
