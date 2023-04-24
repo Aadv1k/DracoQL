@@ -3,6 +3,9 @@ import * as AST from "./types/ast";
 import { GET, POST } from "./lib/fetch";
 import fs from "node:fs";
 import path from "node:path";
+
+import fetch from "node-fetch";
+
 import {
   DQLSyntaxError,
   DQLNetworkError,
@@ -31,7 +34,8 @@ export default class DQLInterpreter {
     node: AST.FetchExpression,
     orNode?: AST.OrExpression
   ): Promise<AST.GeneralType> {
-    let response: Array<Buffer>;
+
+    let response: any;
 
     if (node?.meta?.method === "POST") {
       if (!node.meta?.body?.value)
@@ -48,12 +52,15 @@ export default class DQLInterpreter {
         throw new DQLNetworkError("unable to parse FETCH expression");
       });
     } else {
-      response = await GET(node.url, node.meta?.headers).catch((_a: string) => {
+
+      response = await fetch(node.url, node.meta?.headers).catch((_a: string) => {
         throw new DQLNetworkError("unable to parse FETCH expression");
       });
+
     }
 
-    let data = response.toString();
+    let data = await response.text();
+
     let ret: {
       type: string,
       value: string,
@@ -66,10 +73,9 @@ export default class DQLInterpreter {
       try {
         // TODO: figure out how to store stuff as JSON
         JSON.parse(data);
-
         ret.type = "JSON";
         ret.value = data;
-      } catch (SyntaxError) {
+      } catch (err) {
         switch (orNode?.handler) {
           case AST.OrType.EXIT:
             process.exit(Number(orNode.code));
@@ -133,9 +139,18 @@ export default class DQLInterpreter {
       }
 
       let query;
+
+
       try {
-        query = eval(`val.${node?.what ?? ""}`);
-      } catch {
+        const propertyKeys = node.what.split(".");
+        let result = val;
+
+        for (const key of propertyKeys) {
+          result = result?.[key];
+        }
+        query = result
+
+      } catch (err) {
         throw new DQLSyntaxError(
           `invalid JSON query ${node.what}`,
           node.location.row,

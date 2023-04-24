@@ -5,15 +5,19 @@ import { URL } from "node:url";
 export async function GET(target: string, headers?: any): Promise<Array<Buffer>> {
   return new Promise((resolve, reject) => {
     const url = new URL(target);
+    let data: Array<Buffer> = [];
+
     (url.protocol === "http:" ? http : https)
       .get({
         hostname: url.hostname,
         path: url.pathname,
         headers,
       }, (res) => {
-      let data: Array<Buffer> = [];
       res.on("data", (d: Buffer) => { data.push(d) });
-      res.on("end", () => resolve(data));
+      res.on("end", () => {
+        console.log(data);
+        resolve(data)
+      });
       res.on("error", (error) => reject(error));
     })
     .on("error", e => reject(e));
