@@ -115,7 +115,9 @@ export default class DQLParser {
                   `unable to find variable ${lexedLine[j + 1]?.word ?? ""}`
                 );
               targetUrl = this.ENS[lexedLine[j + 1].word];
-            } else if (lexedLine[j + 1].tokenType === TokenType.STRING_LITERAL) {
+            } else if (
+              lexedLine[j + 1].tokenType === TokenType.STRING_LITERAL
+            ) {
               targetUrl = lexedLine[j + 1].word;
             }
 
@@ -279,7 +281,11 @@ export default class DQLParser {
               },
             };
 
-            if (tail && tail?.type === "VarDeclaration" && Object.keys(tail?.value ?? {}).length === 0) {
+            if (
+              tail &&
+              tail?.type === "VarDeclaration" &&
+              Object.keys(tail?.value ?? {}).length === 0
+            ) {
               let target = this.AST.body[
                 this.AST.body.length - 1
               ] as AST.VarDeclaration;
@@ -287,7 +293,6 @@ export default class DQLParser {
 
               break;
             }
-
 
             this.AST.body.push(extractExpr);
             break;
@@ -356,8 +361,9 @@ export default class DQLParser {
             }
 
             if (
-              tail?.value?.type !== "FetchExpression" &&
-              tail?.value?.type !== "ExtractExpression"
+              !["FetchExpression", "ExtractExpression"].includes(
+                tail?.value?.type ?? tail.type
+              )
             ) {
               throw new DQLSyntaxError(
                 `AS needs a valid expression to cast`,
@@ -370,7 +376,7 @@ export default class DQLParser {
               this.AST.body.length - 1
             ] as AST.VarDeclaration;
 
-            let fetchTarget = target.value as AST.FetchExpression;
+            let fetchTarget = target.value as any;
             fetchTarget.format =
               AST.DataType[fetchFormat as keyof typeof AST.DataType];
 
