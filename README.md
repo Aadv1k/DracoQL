@@ -8,7 +8,7 @@ DracoQL is a an embeddable query language for processing and transforming data f
 
 **Language actively in development, please report any bugs under [issues](https://github.com/aadv1k/dracoql/issues).**
 
-- [Get](#get)
+- [Install](#Install)
 - [Usage](#usage)
 - [Tutorial](#syntax)
   - [Variables](#variables)
@@ -19,7 +19,7 @@ DracoQL is a an embeddable query language for processing and transforming data f
 - [API reference](#api)
 
 
-## Get
+## Install
 
 ```shell
 npm install dracoql
@@ -28,7 +28,7 @@ npm install dracoql
 ## Usage
 
 ```typescript
-import draco from "dracoql";
+import * as draco from "dracoql";
 
 draco.eval(`PIPE "Hello world!" TO STDOUT`);
 ```
@@ -36,7 +36,7 @@ draco.eval(`PIPE "Hello world!" TO STDOUT`);
 Additionally, you can get runtime variables from the caller
 
 ```typescript
-import draco from "dracoql";
+import * as draco from "dracoql";
 
 draco.eval(`VAR data = FETCH https://jsonplaceholder.typicode.com/todos/ AS JSON`, (ctx) => {
   console.log(ctx.getVar("data"))
@@ -52,28 +52,67 @@ A variable can hold either an `INT_LITERAL`, `STRING_LITERAL` or an expression. 
 ```cql
 VAR foo = 1
 VAR bar = "hello world!"
-VAR baz = FETCH "https://example.org" AS HTML
+VAR baz = FETCH "https://example.org"
 ```
 ### Networking
 
 Draco provides `FETCH` as the primary method for interacting with a url
+
+#### Fetch Response
 
 ```cql
 VAR data = FETCH "https://example.org"
       HEADER "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/112.0"
       HEADER "Content-type: application/json"
       METHOD "GET"
-      AS HTML
+```
+
+Here the `data` variable will hold a request object, which looks like so
+
+```typescript
+{
+  headers: any,
+  status: number,
+  redirected: boolean
+  url: string
+}
 ```
 
 Additionaly, you can also make POST requests
 
 ```cql
 VAR data = FETCH "https://reqres.in/api/users" METHOD "POST"
-      HEADER "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/112.0"
-      HEADER "Content-type: application/json"
-      BODY JSON '{"name": "morpheus", "job": "leader"}'
-      AS JSON
+  HEADER "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/112.0"
+  HEADER "Content-type: application/json"
+  BODY JSON '{"name": "morpheus", "job": "leader"}'
+```
+
+#### Fetch JSON
+
+```cql
+VAR data = FETCH "https://reqres.in/api/users" 
+  HEADER "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/112.0"
+  AS JSON
+```
+
+here `data` will be stored as the parsed JSON object
+
+#### Fetch HTML
+
+```cql
+VAR data = FETCH "https://reqres.in" 
+  HEADER "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/112.0"
+  AS HTML
+```
+
+here `data` will be stored as the parsed HTML object, which looks like so
+
+```typescript
+{
+  tag: string,
+  attributes: any,
+  children: [...]
+}
 ```
 
 ### Piping
@@ -96,7 +135,7 @@ Draco provides in-built support for parsing HTML selectors and JSON queries
 
 ```cql
 VAR res = FETCH "https://reqres.in/api/users" AS JSON
-VAR data = EXTRACT "data[0].id" FROM res
+VAR data = EXTRACT "data.0.id" FROM res
 PIPE data TO STDOUT
 ```
 
@@ -146,7 +185,7 @@ PIPE txt TO STDOUT
 module draco, exports the lexer, interpreter and an parser.
 
 ```typescript
-import draco from "dracoql";
+import * as draco from "dracoql";
 
 const lexer = new draco.lexer(`PIPE "hello world" TO STDOUT`);
 const parser = new draco.parser(lexer.lex());
