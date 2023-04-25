@@ -12,6 +12,7 @@ import {
   DQLReferenceError,
   DQLMissingBody,
 } from "./Exceptions";
+
 import HTML from "node-html-parser";
 
 const ERR_EXIT_CODE = 1;
@@ -62,11 +63,9 @@ export default class DQLInterpreter {
 
     }
 
-    let data = await response.text();
-
     let ret: {
-      type: string,
-      value: string,
+      type: any,
+      value: any,
     } = {
       type: "",
       value:  "",
@@ -75,9 +74,8 @@ export default class DQLInterpreter {
     if (node.format === AST.DataType.JSON) {
       try {
         // TODO: figure out how to store stuff as JSON
-        JSON.parse(data);
         ret.type = "JSON";
-        ret.value = data;
+        ret.value = await response.json();
       } catch (err) {
         switch (orNode?.handler) {
           case AST.OrType.EXIT:
@@ -91,15 +89,42 @@ export default class DQLInterpreter {
       }
     } else if (node.format === AST.DataType.HTML) {
       ret.type = "HTML";
-      ret.value = data;
+      ret.value = HTML.parse(await response.text());
     } else if (node.format === AST.DataType.TEXT) {
       ret.type = "TEXT";
-      ret.value = data;
+      ret.value = await response.text();
     } else {
-      throw new DQLSyntaxError("need to specify the type for FETCH format", node.location.row, node.location.col);
+      ret.type = "RESPONSE",
+      ret.value = {
+        headers: Object.fromEntries(response.headers),
+        status: response.status,
+        url: response.url,
+        redirected: response.redirected
+      };
     }
-
     return ret;
+  }
+
+  parseHtmlElement(element: any): any {
+      let children = [];
+
+      for (const child of element.childNodes) {
+        if (child instanceof HTML.TextNode) {
+          children.push({
+            type: "TextNode",
+            text: child.text,
+          })
+          continue;
+        } else if (child instanceof HTML.HTMLElement) {
+          children.push(this.parseHtmlElement(child));
+        }
+      }
+
+    return {
+      tag: element.rawTagName,
+      attributes: element.attributes,
+      children,
+    }
   }
 
   evalExtract(
@@ -108,16 +133,15 @@ export default class DQLInterpreter {
   ): AST.GeneralType {
 
     let ret: {
-      type: string,
-      value: string,
+      type: any,
+      value: any,
     } = {
       type: "",
       value: "",
     };
 
-    if (!node?.format) {
-      throw new DQLSyntaxError("EXTRACT needs a valid data type", node.location.row, node.location.col);
-    }
+    let format;
+    format = node?.format;
 
     if (node?.from?.type === "IDENTIFIER") {
       if (!this.NS[node?.from?.value])
@@ -126,13 +150,19 @@ export default class DQLInterpreter {
           node.location.row,
           node.location.col
         );
+
+      format = this.NS[node.from?.value]?.type;
       node.from.value = this.NS[node.from?.value]?.value as string;
     }
 
-    if (node.format === AST.DataType.JSON) {
+    if (!format) {
+      throw new DQLSyntaxError("EXTRACT needs a valid data type", node.location.row, node.location.col);
+    }
+
+    if (format === AST.DataType.JSON) {
       let val;
       try {
-        val = JSON.parse(node?.from?.value ?? "");
+        val = node?.from?.value;
       } catch (SyntaxError) {
         throw new DQLSyntaxError(
           "invalid JSON format",
@@ -146,8 +176,7 @@ export default class DQLInterpreter {
 
       try {
         const propertyKeys = node.what.split(".");
-        let result = val;
-
+        let result: any = val;
         for (const key of propertyKeys) {
           result = result?.[key];
         }
@@ -163,7 +192,7 @@ export default class DQLInterpreter {
 
       if (!query) {
         throw new DQLSyntaxError(
-          `was unable to parse ${val?.[node.what]} from JSON`,
+          `was unable to parse ${node.what} from JSON`,
           node.location.row,
           node.location.col
         );
@@ -171,15 +200,37 @@ export default class DQLInterpreter {
       ret.type = "STRING_LITERAL";
       ret.value = query;
     }
-    if (node.format === AST.DataType.HTML) {
-      let parsed = HTML.parse(node.from?.value ?? "");
-      let t = parsed.querySelector(node.what);
+    if (format === AST.DataType.HTML) {
+      let parsed: any = node.from?.value;
+      let foundElement = parsed.querySelector(node.what);
 
-      ret.value = JSON.stringify({
-        ...t?.attributes,
-        innerText: t?.childNodes.map((e) => e.rawText).join(" "),
-      });
+      if (!foundElement) {
+        throw new DQLSyntaxError(
+          `was unable to parse ${node.what} from HTML`,
+          node.location.row,
+          node.location.col
+        );
+      }
+      ret.value = this.parseHtmlElement(foundElement);
       ret.type = "JSON";
+    } else if (format === "RESPONSE") {
+      let query;
+      try {
+        query = eval(`node.from?.value.${node.what}`);
+      } catch {
+        query = undefined;
+      }
+
+      if (!query) {
+        throw new DQLSyntaxError(
+          `was unable to parse ${node.what} from RESPONSE`,
+          node.location.row,
+          node.location.col
+        );
+      }
+
+      ret.value = query;
+      ret.type = "JSON"
     }
     return ret;
   }
@@ -227,7 +278,6 @@ export default class DQLInterpreter {
             );
             this.NS[node.identifier] = fetchedData;
             break;
-
           } else if (node.value?.type === "ExtractExpression") {
             this.NS[node.identifier] = this.evalExtract(
               node.value as AST.ExtractExpression,
