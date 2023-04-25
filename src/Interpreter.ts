@@ -53,7 +53,10 @@ export default class DQLInterpreter {
       });
     } else {
 
-      response = await fetch(node.url, node.meta?.headers).catch((_a: string) => {
+      response = await fetch(node.url, {
+        method: "GET",
+        headers: node.meta?.headers
+      }).catch((_a: string) => {
         throw new DQLNetworkError("unable to parse FETCH expression");
       });
 
