@@ -45,10 +45,13 @@ export default class DQLInterpreter {
           node.location.row,
           node.location.col
         );
-      response = await POST(
-        node.url,
-        node.meta.body.value,
-        node.meta?.headers
+      response = await fetch(
+        node.url, 
+        {
+          method: "POST",
+          headers: node.meta?.headers,
+          body: node.meta.body.value,
+        }
       ).catch((_a: string) => {
         throw new DQLNetworkError("unable to parse FETCH expression");
       });
@@ -94,13 +97,19 @@ export default class DQLInterpreter {
       ret.type = "TEXT";
       ret.value = await response.text();
     } else {
-      ret.type = "RESPONSE",
-      ret.value = {
-        headers: Object.fromEntries(response.headers),
-        status: response.status,
-        url: response.url,
-        redirected: response.redirected
-      };
+
+
+      ret.type = "RESPONSE";
+      try {
+        ret.value = {
+          headers: Object.fromEntries(response.headers),
+          status: response.status,
+          url: response.url,
+          redirected: response.redirected
+        };
+      } catch {
+          throw new DQLNetworkError("unable to parse FETCH expression");
+      }
     }
     return ret;
   }
@@ -250,7 +259,7 @@ export default class DQLInterpreter {
     }
 
     if (node.destination.type === AST.DestType.STDOUT) {
-      process.stdout.write(src + "\n");
+      process.stdout.write(JSON.stringify(src) + "\n");
     } else if (node.destination.type === AST.DestType.FILE) {
       fs.writeFileSync(
         path.join(__dirname, node.destination.value as string),

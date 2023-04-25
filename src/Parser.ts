@@ -222,23 +222,16 @@ export default class DQLParser {
                 );
             }
 
-            let bodyType = lexedLine[j + 1];
-            let bodyData = lexedLine[j + 2];
 
-            if (bodyData?.tokenType !== TokenType.STRING_LITERAL)
+            let bodyData = lexedLine[j + 1];
+
+            if (
+              bodyData?.tokenType !== TokenType.STRING_LITERAL &&
+              bodyData?.tokenType !== TokenType.IDENTIFIER
+            )
               throw new DQLSyntaxError(
                 `BODY expected a valid data as string literal got ${
                   bodyData?.tokenType ?? "none"
-                }`,
-                i,
-                lexedLine[j].begin
-              );
-
-            let vals: Array<string> = Object.values(AST.BodyType);
-            if (!vals.includes(bodyType.word))
-              throw new DQLSyntaxError(
-                `BODY expected a valid data type got ${
-                  bodyType?.tokenType ?? "none"
                 }`,
                 i,
                 lexedLine[j].begin
@@ -249,10 +242,17 @@ export default class DQLParser {
             ] as AST.VarDeclaration;
 
             let targetFetchExpr = target.value as AST.FetchExpression;
+
+            let val = bodyData.word;
+            if (bodyData.tokenType === TokenType.IDENTIFIER) {
+              if (!this.ENS[val]) throw new DQLReferenceError(`${bodyData.word}`, i, lexedLine[j+1].end);
+              val = this.ENS[val];
+            }
+
             targetFetchExpr.meta = {
               ...targetFetchExpr.meta,
               body: {
-                type: AST.BodyType[bodyType.word as keyof typeof AST.BodyType],
+                type: "",
                 value: bodyData.word,
               },
             };
