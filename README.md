@@ -3,17 +3,6 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=&logo=typescript&logoColor=white)
 [![NPM](https://badge.fury.io/js/dracoql.svg)](https://npm.im/dracoql)
 
-## TODO 
-
-- Better logic for fetching web pages; Use puppeteer instead of fetch to render JavaScript
-- `PRESET` keyword
-  - create a preset folder each should contain a file eg: `sql.ts`
-  - [ ] `PRESET "email" "[ADDRESS]"`
-  - [ ] `PRESET "whatsapp" "+91 XXXX-XXXX"` 
-  - [ ] `PRESET "sms" "+91 XXXX-XXXX"`
-  - [ ] `PRESET "telegram" "@username"`
-  - [ ] `PRESET "discord" [ID]` (?)
-
 DracoQL is a an embeddable query language for processing and transforming data from the web resources and writing it to files and databases.
 
 **Language actively in development, please report any bugs under [issues](https://github.com/aadv1k/dracoql/issues).**
@@ -23,6 +12,11 @@ DracoQL is a an embeddable query language for processing and transforming data f
 - [Tutorial](#syntax)
   - [Variables](#variables)
   - [Networking](#networking)
+    - [Fetch](#fetch-response)
+    - [Fetch HTML](#fetch-html)
+    - [Fetch JSON](#fetch-json)
+    - [Caching response](#caching-html)
+    - [Headless mode](#headless-html-mode)
   - [Piping](#piping)
   - [Extraction](#extraction)
 - [Examples](#examples)
@@ -123,6 +117,27 @@ here `data` will be stored as the parsed HTML object, which looks like so
   attributes: any,
   children: [...]
 }
+```
+
+#### Caching HTML
+
+Addtionally draco also has a `CACHE` keyword which requires an time in milliseconds and optional path for `html-cache` directory
+
+Here is example usage. NOTE Caching only works with HTML data type
+
+```cql
+VAR data = FETCH "https://example.org"
+  CACHE 10000
+  AS HTML
+```
+#### Headless HTML mode
+
+To scrap HTML from SPAs Draco offers an optinal `HEADLESS` flag, which when enabled will use puppeteer to load and fetch the html page.
+
+```cql
+VAR data = FETCH "https://bloomberg.com"
+  CACHE 6e5
+  AS HTML HEADLESS
 ```
 
 ### Piping
