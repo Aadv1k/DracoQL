@@ -224,7 +224,7 @@ export default class DQLInterpreter {
       ret.value = query;
     }
     if (format === AST.DataType.HTML) {
-      let parsed: any = node.from?.value;
+      let parsed: any = HTML.parse(node.from?.value);
       let foundElement = parsed.querySelector(node.what);
 
       if (!foundElement) {
