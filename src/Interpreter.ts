@@ -1,8 +1,11 @@
 import * as Lexer from "./types/lexer";
 import * as AST from "./types/ast";
-import { GET, POST } from "./lib/fetch";
 import fs from "node:fs";
 import path from "node:path";
+
+import * as htmlCache from "./lib/cacheResponse";
+
+import fetchHeadless from "./lib/fetchHeadless";
 
 import fetch from "node-fetch";
 
@@ -36,9 +39,19 @@ export default class DQLInterpreter {
     orNode?: AST.OrExpression
   ): Promise<AST.GeneralType> {
 
+
+    let output: AST.GeneralType;
     let response: any;
 
-    if (node?.meta?.method === "POST") {
+    if (node.format === "HTML" && node.cache) {
+      const cachedHtml = htmlCache.getCachedHtmlOrNull(node.url, node.cache.dir, node.cache.timeout);
+      if (cachedHtml) {
+        output = this.generalTypeBuilder("HTML", cachedHtml.content);
+        return output;
+      }
+    }
+
+    if (node?.meta?.method === "POST" && !node.headless) {
       if (!node.meta?.body?.value)
         throw new DQLMissingBody(
           "FETCH with POST expected a BODY, found none",
@@ -55,63 +68,64 @@ export default class DQLInterpreter {
       ).catch((_a: string) => {
         throw new DQLNetworkError("unable to parse FETCH expression");
       });
-    } else {
+    } 
 
+    if ((node?.meta?.method === "GET" || !node?.meta?.method) && !node.headless) {
       response = await fetch(node.url, {
         method: "GET",
         headers: node.meta?.headers
       }).catch((_a: string) => {
         throw new DQLNetworkError("unable to parse FETCH expression");
       });
-
     }
 
-    let ret: {
-      type: any,
-      value: any,
-    } = {
-      type: "",
-      value:  "",
-    };
 
-    if (node.format === AST.DataType.JSON) {
+    let headlessHtmlStr;
+    if (node.headless && node.format === "HTML") {
       try {
-        // TODO: figure out how to store stuff as JSON
-        ret.type = "JSON";
-        ret.value = await response.json();
-      } catch (err) {
-        switch (orNode?.handler) {
-          case AST.OrType.EXIT:
-            process.exit(Number(orNode.code));
-          case AST.OrType.DIE:
-            process.exit(ERR_EXIT_CODE);
-        }
-        throw new DQLSyntaxError(
-          "received invalid JSON while parsing FETCH expression"
-        );
+        headlessHtmlStr = await fetchHeadless(node.url);
+      } catch {
+        throw new DQLNetworkError("unable to parse FETCH expression");
       }
-    } else if (node.format === AST.DataType.HTML) {
-      ret.type = "HTML";
-      ret.value = HTML.parse(await response.text());
-    } else if (node.format === AST.DataType.TEXT) {
-      ret.type = "TEXT";
-      ret.value = await response.text();
-    } else {
+    }
 
-
-      ret.type = "RESPONSE";
-      try {
-        ret.value = {
+    switch (node.format) {
+      case AST.DataType.JSON:
+        try {
+          output = this.generalTypeBuilder("JSON", await response.json())
+        } catch (err) {
+          switch (orNode?.handler) {
+            case AST.OrType.EXIT:
+              process.exit(Number(orNode.code));
+            case AST.OrType.DIE:
+              process.exit(ERR_EXIT_CODE);
+          }
+          throw new DQLSyntaxError(
+            "received invalid JSON while parsing FETCH expression"
+          );
+        }
+        break;
+      case AST.DataType.HTML:
+        const htmlStr = node.headless ? headlessHtmlStr : await response.text();
+        if (node.cache) {
+          htmlCache.cache(htmlStr, node.url, node.cache.dir)
+        };
+        output = this.generalTypeBuilder("HTML", htmlStr);
+        break;
+      case AST.DataType.TEXT:
+        output = this.generalTypeBuilder(AST.DataType.TEXT, await response.text());
+        break;
+      default:
+        output = this.generalTypeBuilder("RESPONE", {
           headers: Object.fromEntries(response.headers),
           status: response.status,
           url: response.url,
           redirected: response.redirected
-        };
-      } catch {
-          throw new DQLNetworkError("unable to parse FETCH expression");
-      }
+        });
+        break;
     }
-    return ret;
+
+    return output;
   }
 
   parseHtmlElement(element: any): any {
@@ -259,7 +273,7 @@ export default class DQLInterpreter {
     }
 
     if (node.destination.type === AST.DestType.STDOUT) {
-      process.stdout.write(JSON.stringify(src) + "\n");
+      console.log(src);
     } else if (node.destination.type === AST.DestType.FILE) {
       fs.writeFileSync(
         path.join(__dirname, node.destination.value as string),
@@ -268,16 +282,14 @@ export default class DQLInterpreter {
     }
   }
 
-  async run() {
+  async run(): Promise<void> {
     for (let i = 0; i < this.ASTDocument.body.length; i++) {
       let node = this.ASTDocument.body[i];
       let nextNode = this.ASTDocument.body?.[i + 1];
 
       switch (node.type) {
         case "VarDeclaration": {
-          this.NS[node.identifier] = null;
           node = node as AST.VarDeclaration;
-
           if (node.value?.type === "FetchExpression") {
              let fetchedData = await this.evalFetch(
               node.value as AST.FetchExpression,
@@ -311,6 +323,16 @@ export default class DQLInterpreter {
       }
     }
   }
+
+
+  generalTypeBuilder(type: string, value: any): AST.GeneralType {
+    return {
+      type,
+      value,
+    }
+
+  }
+  
 
   getVar(varName: string): any {
     return this.NS?.[varName];

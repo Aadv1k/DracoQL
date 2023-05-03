@@ -67,6 +67,11 @@ export interface FetchExpression {
   } | null,
   format: DataType | null,
   location: Location,
+  cache?: {
+    dir: string,
+    timeout: number,
+  },
+  headless?: boolean
 }
 
 export enum OrType {
@@ -82,7 +87,7 @@ export interface OrExpression {
 
 export interface GeneralType {
   type: string,
-  value: string,
+  value: any,
 }
 
 export interface VarDeclaration {
@@ -107,13 +112,15 @@ export interface PipeExpression {
   location: Location,
 }
 
+export enum PRESETS {
+  custom = "custom",
+  email = "email",
+  whatsapp = "whatsapp",
+}
+
 export enum DestType {
   FILE = "FILE",
   STDOUT = "STDOUT",
-  SQL = "SQL",
-  DOCUMET = "DOCUMENT",
-  WEBRESOURCE = "WEBRESOURCE",
-  FILE_SERVER = "FILE_SERVER",
-  EXTERN = "EXTERN",
+  PRESET = "PRESET"
 }
 

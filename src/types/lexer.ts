@@ -23,6 +23,7 @@ export enum Tokens {
   EQUALTO = "=",
   EXTERN = "EXTERN",
   FETCH = "FETCH",
+  CACHE = "CACHE",
   METHOD = "METHOD",
   HEADER = "HEADER",
   EXTRACT = "EXTRACT",
@@ -31,11 +32,13 @@ export enum Tokens {
   TEXT = "TEXT",
   JSON = "JSON",
   HTML = "HTML",
+  HEADLESS = "HEADLESS",
   FILE = "FILE",
   FORM = "FORM",
   AS = "AS",
   PIPE = "PIPE",
   STDOUT = "STDOUT",
   TO = "TO",
+  PRESET = "PRESET"
 }
 

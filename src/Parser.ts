@@ -171,6 +171,68 @@ export default class DQLParser {
             break;
           }
 
+          case Tokens.HEADLESS: {
+            if (tail?.value?.type !== "FetchExpression") {
+              throw new DQLSyntaxError("HEADLESS expected a valid FETCH expression", j, lexedLine[j].begin);
+            }
+
+            if (tail.value.format !== "HTML") {
+              throw new DQLSyntaxError(`HEADLESS flag can only be passed to HTML, got ${tail.value?.format ?? "none"}`, j, lexedLine[j].begin)
+            }
+
+            let target = this.AST.body[
+              this.AST.body.length - 1
+            ] as AST.VarDeclaration;
+
+
+            let targetFetchExpr = target.value as AST.FetchExpression;
+            targetFetchExpr.headless = true;
+            break;
+          }
+
+          case Tokens.CACHE: {
+            if (!tail || tail?.type !== "VarDeclaration") {
+              if (tail?.value?.type !== "FetchExpression")
+                throw new DQLSyntaxError(
+                  "CACHE expected a valid FETCH expression",
+                  i,
+                  lexedLine[j].begin
+                );
+            }
+
+            const arg1 = lexedLine[j+1];
+            const arg2 = lexedLine[j+2];
+
+            let cacheTimoutInMS;
+            let cacheDirPath;
+
+            if (arg1?.tokenType !== TokenType.INT_LITERAL) {
+              throw new DQLSyntaxError(`CACHE expected a INT_LITERAL for timeout, found ${arg1?.tokenType ?? "none"}`, j, lexedLine[j].begin + 1)
+            }
+
+            cacheTimoutInMS = Number(arg1.word);
+
+            if (arg2) {
+              if (arg2.tokenType !== TokenType.STRING_LITERAL) {
+                throw new DQLSyntaxError(`CACHE expected a STRING_LITERAL for cache dir, found ${arg2?.tokenType ?? "none"}`, j, lexedLine[j].begin + 1)
+              }
+              cacheDirPath = arg2.word;
+            }
+
+            let target = this.AST.body[
+              this.AST.body.length - 1
+            ] as AST.VarDeclaration;
+
+            let targetFetchExpr = target.value as AST.FetchExpression;
+
+            targetFetchExpr.cache = {
+              timeout: cacheTimoutInMS,
+              dir: cacheDirPath ?? "./",
+            }
+
+            break;
+          }
+
           case Tokens.HEADER: {
             if (!tail || tail?.type !== "VarDeclaration") {
               if (tail?.value?.type !== "FetchExpression")
@@ -424,6 +486,7 @@ export default class DQLParser {
                 lexedLine[j].end + 1
               );
             }
+
             let toOutput = lexedLine[j + 1];
             let toOutputValues: Array<string> = Object.values(AST.DestType);
             if (
@@ -432,8 +495,7 @@ export default class DQLParser {
               !toOutputValues.includes(toOutput.word)
             ) {
               throw new DQLSyntaxError(
-                `TO expects a valid destination, got ${
-                  toOutput
+                `TO expects a valid destination, got ${toOutput
                     ? `a ${toOutput.tokenType.toLowerCase()} '${toOutput.word}'`
                     : "none"
                 }`,
@@ -455,21 +517,8 @@ export default class DQLParser {
               value: null,
             };
 
-            if (pipeDestExpr.type === AST.DestType.EXTERN) {
-              if (
-                !lexedLine[j + 2] ||
-                lexedLine[j + 2]?.tokenType !== TokenType.IDENTIFIER
-              )
-                throw new DQLSyntaxError(
-                  `EXTERN expects a valid identifier found ${
-                    lexedLine?.[j + 2]?.tokenType ?? "none"
-                  }`,
-                  i,
-                  lexedLine[j + 1].end
-                );
 
-              pipeDestExpr.value = lexedLine[j + 2].word;
-            } else if (pipeDestExpr.type === AST.DestType.FILE) {
+           if (pipeDestExpr.type === AST.DestType.FILE) {
               if (
                 !lexedLine[j + 2] ||
                 lexedLine[j + 2]?.tokenType !== TokenType.STRING_LITERAL
@@ -482,6 +531,21 @@ export default class DQLParser {
                   lexedLine[j + 1].end
                 );
               pipeDestExpr.value = lexedLine[j + 2].word;
+            } else if (pipeDestExpr.type === AST.DestType.PRESET) {
+
+              if (
+                !lexedLine[j + 2] ||
+                lexedLine[j + 2]?.tokenType !== TokenType.STRING_LITERAL
+              )
+                throw new DQLSyntaxError(
+                  `PRESET expects a valid preset found ${
+                    lexedLine?.[j + 2]?.tokenType ?? "none"
+                  }`,
+                  i,
+                  lexedLine[j + 1].end
+                );
+
+
             }
 
             let target = this.AST.body[
@@ -539,20 +603,6 @@ export default class DQLParser {
               orExpr.code = Number(lexedLine[j + 2].word);
             }
             this.AST.body.push(orExpr);
-            break;
-          case Tokens.EXTERN:
-            if (
-              !lexedLine[j + 1] ||
-              lexedLine[j + 1]?.tokenType !== TokenType.IDENTIFIER
-            ) {
-              throw new DQLSyntaxError(
-                `EXTERN expects a valid identifier, got ${
-                  lexedLine[j + 1]?.tokenType ?? "none"
-                }`,
-                i,
-                lexedLine[j].end
-              );
-            }
             break;
         }
       }

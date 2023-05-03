@@ -22,7 +22,8 @@
   "dependencies": {
     "@types/node-fetch": "^2.6.3",
     "node-fetch": "^2.6.9",
-    "node-html-parser": "^6.1.5"
+    "node-html-parser": "^6.1.5",
+    "puppeteer": "^20.0.0"
   },
   "files": [
     "./dist",

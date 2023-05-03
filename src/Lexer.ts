@@ -84,6 +84,10 @@ export default class DQLLexer {
         obj.tokenType = TokenType.KEYWORD;
         this.stack.push(obj);
         break;
+      case Tokens.PRESET:
+        obj.tokenType = TokenType.KEYWORD;
+        this.stack.push(obj);
+        break;
       case Tokens.FILE:
         obj.tokenType = TokenType.KEYWORD;
         this.stack.push(obj);
@@ -130,16 +134,21 @@ export default class DQLLexer {
           break;
         }
 
-
         if (Number.isInteger(Number(obj.word))) {
           obj.tokenType = TokenType.INT_LITERAL;
           this.stack.push(obj);
           break;
         }
 
-        obj.tokenType = TokenType.STRING_LITERAL;
-        this.stack.push(obj);
+        if (isStr) {
+          obj.tokenType = TokenType.STRING_LITERAL;
+          this.stack.push(obj);
+          return;
+        }
+
+        throw new DQLSyntaxError(`Unknown token ${obj.word}`);
     }
+
   }
 
   lexLine(line: string): Array<Token> {
