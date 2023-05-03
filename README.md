@@ -3,6 +3,16 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=&logo=typescript&logoColor=white)
 [![NPM](https://badge.fury.io/js/dracoql.svg)](https://npm.im/dracoql)
 
+## TODO 
+
+- Better logic for fetching web pages; Use puppeteer instead of fetch to render JavaScript
+- `PRESET` keyword
+  - create a preset folder each should contain a file eg: `sql.ts`
+  - [ ] `PRESET "email" "[ADDRESS]"`
+  - [ ] `PRESET "whatsapp" "+91 XXXX-XXXX"` 
+  - [ ] `PRESET "sms" "+91 XXXX-XXXX"`
+  - [ ] `PRESET "telegram" "@username"`
+  - [ ] `PRESET "discord" [ID]` (?)
 
 DracoQL is a an embeddable query language for processing and transforming data from the web resources and writing it to files and databases.
 
