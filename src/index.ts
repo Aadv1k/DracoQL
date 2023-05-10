@@ -1,13 +1,13 @@
-import eval from "./Eval";
-import interpreter from "./Interpreter";
-import parser from "./Parser";
-import lexer from "./Lexer";
+import DQLEval from "./Eval";
+import DQLInterpreter from "./Interpreter";
+import DQLparser from "./Parser";
+import DQLlexer from "./Lexer";
 
 export {
-  interpreter,
-  lexer,
-  parser,
-  eval
+  DQLInterpreter,
+  DQLlexer,
+  DQLparser,
+  DQLEval
 };
 
 

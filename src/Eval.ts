@@ -1,5 +1,4 @@
 import DQLInterpreter from "./Interpreter";
-
 import DQLParser from "./Parser";
 import DQLLexer from "./Lexer";
 

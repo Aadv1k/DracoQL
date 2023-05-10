@@ -1,6 +1,12 @@
 import { TokenType, Token, Tokens, Lex } from "./types/lexer";
 import { DQLSyntaxError } from "./Exceptions";
-import { isURL } from "./lib/utils";
+
+const isURL = (url: string): boolean => {
+  try { 
+    new URL(url) 
+    return true 
+  } catch { return false }
+} 
 
 export default class DQLLexer {
   private input: string;

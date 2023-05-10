@@ -1,5 +1,13 @@
 # DracoQL 🐉
 
+*IMPORTANT: you are currently using the browser version of DracoQL, you won't be able to*
+
+- `PIPE x TO FILE` no FS module
+- `FETCH ... HEADLESS` No longer works without puppteer
+- `FETCH ... CACHE` Doesn't work for now (maybe in the future)
+
+
+
 ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=&logo=typescript&logoColor=white)
 [![NPM](https://badge.fury.io/js/dracoql.svg)](https://npm.im/dracoql)
 
