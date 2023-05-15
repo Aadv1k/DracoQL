@@ -6,6 +6,8 @@
   
 ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=&logo=typescript&logoColor=white)
 [![NPM](https://badge.fury.io/js/dracoql.svg)](https://npm.im/dracoql)
+ [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Check%20out%20DracoQL%20-%20a%20new%20query%20language%20for%20processing%20and%20transforming%20web%20data%20%F0%9F%90%B2&url=https%3A%2F%2Fgithub.com%2Faadv1k&hashtags=javascript%2Ctypescript%2Cwebdev%2C100daysofcode)
+ 
 
 DracoQL is a an embeddable query language for processing and transforming data from the web. 
 </div>
