@@ -1,13 +1,24 @@
-# DracoQL 🐉
-
+<div align="center">
+ 
+<img src="https://github.com/Aadv1k/DracoQL/assets/81357878/fa6c485b-ee36-48da-b35f-06a44af3c80d" width="200">
+ 
+# DracoQL 
+  
 ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=&logo=typescript&logoColor=white)
 [![NPM](https://badge.fury.io/js/dracoql.svg)](https://npm.im/dracoql)
 
-DracoQL is a an embeddable query language for processing and transforming data from the web resources and writing it to files and databases.
+DracoQL is a an embeddable query language for processing and transforming data from the web. 
+</div>
+
+## Features
+
+- **An easier interface** to interact with networking, as simple as `FETCH url AS HTML/JSON/TEXT`
+- Includes advanced features such as (optional) **caching and headless mode**
+- **Access variables from the interpreter** in your code via the callback function
 
 **Language actively in development, please report any bugs under [issues](https://github.com/aadv1k/dracoql/issues).**
 
-- [Install](#Install)
+- [Install](#install)
 - [Usage](#usage)
 - [Tutorial](#syntax)
   - [Variables](#variables)
@@ -179,7 +190,7 @@ VAR data = FETCH "https://www.cs.cmu.edu/afs/cs/project/ai-repository/ai/areas/n
 PIPE title TO STDOUT
 ```
 
-### Fetch data and put it to file
+### Fetch data, handle error and put it to file
 
 ```cql
 VAR data = FETCH "https://jsonplaceholder.typicode.com/users/1"
@@ -189,17 +200,19 @@ VAR data = FETCH "https://jsonplaceholder.typicode.com/users/1"
 PIPE data TO FILE "user.json" 
 ```
 
-### Scrape data from a website 
+### Scrape data from a website and cache it
 
 ```cql
-VAR data = FETCH https://www.cnet.com/
+VAR data = FETCH "https://www.cnet.com/" 
+    HEADER "User-Agent: My user agent"
+    CACHE 6e5
+    AS HTML
 
 VAR headline = EXTRACT 
   ".c-pageHomeHightlights>div:nth-child(1)>div:nth-child(2)>div:nth-child(1)>a:nth-child(1)>div:nth-child(1)>div:nth-child(2)>div:nth-child(1)>h3:nth-child(1)>span:nth-child(1)"
-  FROM data 
-  AS HTML
+  FROM data
 
-VAR txt = EXTRACT innerText FROM headline 
+VAR txt = EXTRACT "children.0.text" FROM headline 
   AS JSON
 
 PIPE txt TO STDOUT
@@ -220,5 +233,12 @@ const interpreter = new draco.interpreter(parser.parse());
   await interpreter.run();
 })()
 ```
+
+## Support
+
+If you liked the project, give it a star! it's good to see feedback and appreciation from strangers. If you would like to suggest a feature then raise an issue.
+
+Image is taken from Dall-E
+
 
 
