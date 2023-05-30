@@ -1,6 +1,6 @@
 <div align="center">
  
-<img src="https://github.com/Aadv1k/DracoQL/assets/81357878/fa6c485b-ee36-48da-b35f-06a44af3c80d" width="200">
+<img src="https://github.com/Aadv1k/DracoQL/assets/81357878/b7c9b29b-c5a9-457b-aae5-a80ac977c6d3" width="200">
  
 # DracoQL 
   
