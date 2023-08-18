@@ -7,25 +7,27 @@ DracoQL is a query language that tries to **aggresively simplify JavaScript netw
 
 here is a crude demonstration
 
-```SQL
-FETCH data FROM http://api.kanye.rest/ AS JSON 
+```CQL
+FETCH data FROM "http://api.kanye.rest/" AS JSON 
   OR DIE
 ```
 
 and the JavaScript code equivalent 
 
-```
+```js
 try {
-    const res = await fetch(http://api.kanye.rest/);
+    const res = await fetch("http://api.kanye.rest/");
     const data = await res.json()
 } catch { /* do something * / }
 ```
 
 ## Why?
 
-At the time I was building [propelr](https://github.com/aadv1k/propelr) and needed to store a customizable "network" workflow, eg fetch resource A from B and post A to resource C.
+At the time I was building [propelr](https://github.com/aadv1k/propelr) and needed to store a customizable "network" workflow, eg 
 
-I could have used an object or class, but that was an unflexible system and a whole lot of empty fields. DracoQL allows me to store the queries as text in a database and then interpret them on-demand. 
+> Fetch resource A from B, extract "X" from A and post x to C
+
+I decided not to use an object or class because they are inflexible and result in many unused fields. Instead, I chose DracoQL which allows me to store queries as text in a database and interpret at runtime. This approach is a lot more elegant and portable
 
 ## Documentation
 
