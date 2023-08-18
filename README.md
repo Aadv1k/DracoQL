@@ -1,24 +1,33 @@
-<div align="center">
- 
-<img src="https://github.com/Aadv1k/DracoQL/assets/81357878/b7c9b29b-c5a9-457b-aae5-a80ac977c6d3" width="200">
- 
 # DracoQL 
   
 ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=&logo=typescript&logoColor=white)
 [![NPM](https://badge.fury.io/js/dracoql.svg)](https://npm.im/dracoql)
- [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?text=Check%20out%20DracoQL%20-%20a%20new%20query%20language%20for%20processing%20and%20transforming%20web%20data%20%F0%9F%90%B2&url=https%3A%2F%2Fgithub.com%2Faadv1k%2Fdracoql&hashtags=javascript%2Ctypescript%2Cwebdev%2C100daysofcode)
- 
 
-DracoQL is a an embeddable query language for processing and transforming data from the web. 
-</div>
+DracoQL is a query language that tries to **aggresively simplify JavaScript networking calls to expressive human-readable statements**
 
-## Features
+here is a crude demonstration
 
-- **An easier interface** to interact with networking, as simple as `FETCH url AS HTML/JSON/TEXT`
-- Includes advanced features such as (optional) **caching and headless mode**
-- **Access variables from the interpreter** in your code via the callback function
+```SQL
+FETCH data FROM http://api.kanye.rest/ AS JSON 
+  OR DIE
+```
 
-**Language actively in development, please report any bugs under [issues](https://github.com/aadv1k/dracoql/issues).**
+and the JavaScript code equivalent 
+
+```
+try {
+    const res = await fetch(http://api.kanye.rest/);
+    const data = await res.json()
+} catch { /* do something * / }
+```
+
+## Why?
+
+At the time I was building [propelr](https://github.com/aadv1k/propelr) and needed to store a customizable "network" workflow, eg fetch resource A from B and post A to resource C.
+
+I could have used an object or class, but that was an unflexible system and a whole lot of empty fields. DracoQL allows me to store the queries as text in a database and then interpret them on-demand. 
+
+## Documentation
 
 - [Install](#install)
 - [Usage](#usage)
@@ -59,7 +68,6 @@ draco.eval(`VAR data = FETCH https://jsonplaceholder.typicode.com/todos/ AS JSON
   console.log(ctx.getVar("data"))
 });
 ```
-
 ## Syntax
 
 ### Variables
